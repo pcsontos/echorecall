@@ -55,26 +55,26 @@ Shared core in `src/core/`; Nuxt adapters in `app/` and `server/`; tests in `tes
 
 ### Tests for User Story 1 — write and verify red first
 
-- [ ] T006 [P] [US1] Write failing parse/normalize/reject/resolve (ui→env→unset), persist, and clear tests in `tests/unit/base-url.test.ts`
-- [ ] T007 [P] [US1] Write failing tests that `OpenAiTtsProvider` constructs the SDK with optional `baseURL` and omits it when unset in `tests/unit/openai-provider.test.ts`
-- [ ] T008 [P] [US1] Write failing GET/PUT/DELETE and `INVALID_BASE_URL` tests in `tests/integration/settings-base-url.test.ts`
-- [ ] T009 [P] [US1] Extend failing Test Connection tests for optional `{ baseUrl, key }`, no config/audio write, and `NO_KEY`/`UNREACHABLE`/`UNAUTHORIZED`/`TIMEOUT`/`UNKNOWN` codes in `tests/integration/settings-key.test.ts`
-- [ ] T010 [P] [US1] Write failing Settings Base URL field, save/clear, save-without-test, and test-result copy tests in `tests/component/OpenAiKeySettings.test.ts`
-- [ ] T011 [US1] Obtain explicit user/reviewer approval for the US1 tests from T006–T010, then run the approved focused tests and record the expected failures in `specs/009-litellm-tts-gateway/quickstart.md`
+- [x] T006 [P] [US1] Write failing parse/normalize/reject/resolve (ui→env→unset), persist, and clear tests in `tests/unit/base-url.test.ts`
+- [x] T007 [P] [US1] Write failing tests that `OpenAiTtsProvider` constructs the SDK with optional `baseURL` and omits it when unset in `tests/unit/openai-provider.test.ts`
+- [x] T008 [P] [US1] Write failing GET/PUT/DELETE and `INVALID_BASE_URL` tests in `tests/integration/settings-base-url.test.ts`
+- [x] T009 [P] [US1] Extend failing Test Connection tests for optional `{ baseUrl, key }`, no config/audio write, and `NO_KEY`/`UNREACHABLE`/`UNAUTHORIZED`/`TIMEOUT`/`UNKNOWN` codes in `tests/integration/settings-key.test.ts`
+- [x] T010 [P] [US1] Write failing Settings Base URL field, save/clear, save-without-test, and test-result copy tests in `tests/component/OpenAiKeySettings.test.ts`
+- [x] T011 [US1] Obtain explicit user/reviewer approval for the US1 tests from T006–T010, then run the approved focused tests and record the expected failures in `specs/009-litellm-tts-gateway/quickstart.md`
 
 ### Implementation for User Story 1
 
-- [ ] T012 [US1] Implement `parseBaseUrl`, `resolveBaseUrl`, `getBaseUrlStatus`, `setUiBaseUrl`, and `clearUiBaseUrl` in `src/core/settings/base-url.ts`
-- [ ] T013 [US1] Add optional `baseURL` to `OpenAiTtsConfig` and pass it to `new OpenAI(...)` in `src/core/tts/openai-provider.ts`
-- [ ] T014 [US1] Resolve the active base URL and pass `{ apiKey, baseURL }` from `getTtsProvider()` in `server/utils/container.ts`
-- [ ] T015 [US1] Implement GET/PUT/DELETE in `server/api/settings/openai-base-url.get.ts`, `server/api/settings/openai-base-url.put.ts`, and `server/api/settings/openai-base-url.delete.ts`
-- [ ] T016 [US1] Extend POST `/api/settings/openai-key/test` to accept draft `baseUrl`/`key`, call `models.list()` with a 10s timeout, and return typed `{ ok }` results in `server/api/settings/openai-key/test.post.ts`
-- [ ] T017 [US1] Export base-url helpers from `src/core/index.ts`
-- [ ] T018 [US1] Add Base URL CRUD and extended test helpers in `app/composables/useSettings.ts`
-- [ ] T019 [US1] Add the optional Base URL field, save/clear, and Test Connection wiring in `app/components/settings/OpenAiKeySettings.vue`
-- [ ] T020 [US1] Add English and Hungarian Base URL, validation, and test-code copy in `i18n/locales/en.json` and `i18n/locales/hu.json`
-- [ ] T021 [US1] Stub `GET /api/settings/openai-base-url` in existing Settings mounts in `tests/component/SettingsModal.test.ts`
-- [ ] T022 [US1] Run the US1-focused tests until green, then refactor without changing the contracts in `tests/unit/base-url.test.ts`, `tests/unit/openai-provider.test.ts`, `tests/integration/settings-base-url.test.ts`, `tests/integration/settings-key.test.ts`, and `tests/component/OpenAiKeySettings.test.ts`
+- [x] T012 [US1] Implement `parseBaseUrl`, `resolveBaseUrl`, `getBaseUrlStatus`, `setUiBaseUrl`, and `clearUiBaseUrl` in `src/core/settings/base-url.ts`
+- [x] T013 [US1] Add optional `baseURL` to `OpenAiTtsConfig` and pass it to `new OpenAI(...)` in `src/core/tts/openai-provider.ts`
+- [x] T014 [US1] Resolve the active base URL and pass `{ apiKey, baseURL }` from `getTtsProvider()` in `server/utils/container.ts`
+- [x] T015 [US1] Implement GET/PUT/DELETE in `server/api/settings/openai-base-url.get.ts`, `server/api/settings/openai-base-url.put.ts`, and `server/api/settings/openai-base-url.delete.ts`
+- [x] T016 [US1] Extend POST `/api/settings/openai-key/test` to accept draft `baseUrl`/`key`, call `models.list()` with a 10s timeout, and return typed `{ ok }` results in `server/api/settings/openai-key/test.post.ts`
+- [x] T017 [US1] Export base-url helpers from `src/core/index.ts`
+- [x] T018 [US1] Add Base URL CRUD and extended test helpers in `app/composables/useSettings.ts`
+- [x] T019 [US1] Add the optional Base URL field, save/clear, and Test Connection wiring in `app/components/settings/OpenAiKeySettings.vue`
+- [x] T020 [US1] Add English and Hungarian Base URL, validation, and test-code copy in `i18n/locales/en.json` and `i18n/locales/hu.json`
+- [x] T021 [US1] Stub `GET /api/settings/openai-base-url` in existing Settings mounts in `tests/component/SettingsModal.test.ts`
+- [x] T022 [US1] Run the US1-focused tests until green, then refactor without changing the contracts in `tests/unit/base-url.test.ts`, `tests/unit/openai-provider.test.ts`, `tests/integration/settings-base-url.test.ts`, `tests/integration/settings-key.test.ts`, and `tests/component/OpenAiKeySettings.test.ts`
 
 **Checkpoint**: A valid Base URL can be saved without Test Connection; Test Connection reports reachability; catalog generation uses the resolved destination; empty URL keeps public OpenAI.
 

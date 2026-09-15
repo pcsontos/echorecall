@@ -6,4 +6,6 @@ export default withNuxt({
     // Domain code is strict TS; allow explicit, justified exceptions only.
     '@typescript-eslint/no-explicit-any': 'error',
   },
+}).append({
+  ignores: ['**/node_modules/**', 'dist/**', 'build/**', 'coverage/**', '**/*.min.js'],
 })

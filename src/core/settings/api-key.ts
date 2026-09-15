@@ -1,5 +1,7 @@
 import { DomainError, KeyStorageDisabledError } from '../shared/errors'
+import type { ConnectionTestCode, ConnectionTestResult } from '../tts/catalog'
 import type { AppConfigRepository } from './app-config-repository'
+import { parseBaseUrl, resolveBaseUrl } from './base-url'
 import { decryptSecret, encryptSecret } from './crypto'
 
 // The single app_config row holding the encrypted in-app OpenAI key.
@@ -21,6 +23,14 @@ export interface KeyDeps {
   appSecret?: string
   /** OPENAI_API_KEY from the environment. */
   envKey?: string
+  /** NUXT_OPENAI_BASE_URL — used by Test Connection when no draft URL is sent. */
+  envBaseUrl?: string
+}
+
+/** Optional unsaved Settings values for Test Connection (never persisted). */
+export interface ConnectionDrafts {
+  baseUrl?: string
+  key?: string
 }
 
 /**
@@ -84,20 +94,66 @@ export function clearUiKey(deps: KeyDeps): KeyStatus {
   return getKeyStatus(deps)
 }
 
+function hasOwn<T extends object>(obj: T, key: keyof T): boolean {
+  return Object.prototype.hasOwnProperty.call(obj, key)
+}
+
+/** Map a verifier/network failure to a typed Test Connection code. Never includes the key. */
+export function mapConnectionError(err: unknown): ConnectionTestCode {
+  if (!err || typeof err !== 'object') return 'UNKNOWN'
+  const e = err as {
+    status?: number
+    code?: string
+    name?: string
+    cause?: { code?: string }
+  }
+  if (e.status === 401 || e.status === 403) return 'UNAUTHORIZED'
+  if (
+    e.name === 'AbortError' ||
+    e.name === 'TimeoutError' ||
+    e.name === 'APIConnectionTimeoutError' ||
+    e.code === 'ETIMEDOUT'
+  ) {
+    return 'TIMEOUT'
+  }
+  const code = e.code ?? e.cause?.code
+  if (
+    code === 'ECONNREFUSED' ||
+    code === 'ENOTFOUND' ||
+    code === 'EAI_AGAIN' ||
+    e.name === 'APIConnectionError'
+  ) {
+    return 'UNREACHABLE'
+  }
+  return 'UNKNOWN'
+}
+
 /**
- * Test the active resolved key (FR-044) via an injected verifier (the network
- * call lives in the server adapter). Reports only `{ ok }` — never the key or any
- * failure detail. With no active key the verifier is not called.
+ * Test the currently shown (or resolved) URL + key via an injected verifier
+ * (the network call lives in the server adapter). Drafts are never persisted.
+ * Reports `{ ok: true }` or `{ ok: false, code }` — never the key.
  */
 export async function testApiKey(
   deps: KeyDeps,
-  verify: (apiKey: string) => Promise<boolean>,
-): Promise<{ ok: boolean }> {
-  const key = resolveApiKey(deps)
-  if (!key) return { ok: false }
+  verify: (apiKey: string, baseURL?: string) => Promise<boolean>,
+  drafts?: ConnectionDrafts,
+): Promise<ConnectionTestResult> {
+  const draftKey = drafts?.key?.trim()
+  const key = draftKey || resolveApiKey(deps)
+  if (!key) return { ok: false, code: 'NO_KEY' }
+
+  let baseURL: string | undefined
+  if (drafts && hasOwn(drafts, 'baseUrl')) {
+    const raw = drafts.baseUrl
+    baseURL = raw?.trim() ? parseBaseUrl(raw) : undefined
+  } else {
+    baseURL = resolveBaseUrl({ config: deps.config, envBaseUrl: deps.envBaseUrl })
+  }
+
   try {
-    return { ok: await verify(key) }
-  } catch {
-    return { ok: false }
+    const ok = await verify(key, baseURL)
+    return ok ? { ok: true } : { ok: false, code: 'UNKNOWN' }
+  } catch (err) {
+    return { ok: false, code: mapConnectionError(err) }
   }
 }

@@ -16,6 +16,9 @@ data/
 .env.*
 !.env.example
 
+# test / coverage artifacts
+coverage/
+
 # os / editor
 .DS_Store
 Thumbs.db

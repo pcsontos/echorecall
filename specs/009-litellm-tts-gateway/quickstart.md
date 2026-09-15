@@ -57,6 +57,27 @@ pnpm test -- tests/integration/settings-key.test.ts tests/integration/settings-b
 
 Exact test file names are fixed in `/speckit-tasks`; the list above is the intended slice order.
 
+### US1 red record (T011, 2026-09-15)
+
+Approved tests T006–T010 were run before implementation. Focused command:
+
+```bash
+pnpm exec vitest run tests/unit/base-url.test.ts tests/unit/openai-provider.test.ts tests/integration/settings-base-url.test.ts tests/integration/settings-key.test.ts
+pnpm exec vitest run --config vitest.nuxt.config.ts tests/component/OpenAiKeySettings.test.ts
+```
+
+Expected failures (missing US1 behavior, not environment noise):
+
+| File | Result | Why |
+|------|--------|-----|
+| `tests/unit/base-url.test.ts` | suite fail (0 tests) | `Cannot find module '../../src/core/settings/base-url'` |
+| `tests/unit/openai-provider.test.ts` | 1 fail / 1 pass | omit-`baseURL` already holds; constructor does not pass `baseURL` when set |
+| `tests/integration/settings-base-url.test.ts` | suite fail (0 tests) | same missing `base-url` module |
+| `tests/integration/settings-key.test.ts` | 4 fail / 11 pass | `{ ok: false }` has no `code`; drafts ignored; verifier errors unmapped |
+| `tests/component/OpenAiKeySettings.test.ts` | 8 fail / 8 | no `base-url-input` / save / clear / typed test copy |
+
+`better-sqlite3` was rebuilt for the current Node ABI so the settings-key failures above are behavioral, not native-module mismatch.
+
 ## 5. Manual walkthrough (optional live gateway)
 
 Prerequisites: a reachable LiteLLM (or compatible) proxy with at least one speech model, and a key the proxy accepts.

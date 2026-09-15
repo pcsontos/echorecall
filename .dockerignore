@@ -5,7 +5,8 @@ node_modules/
 data/
 tests/
 specs/
-*.log
+*.log*
 .env
 .env.*
 .DS_Store
+coverage/

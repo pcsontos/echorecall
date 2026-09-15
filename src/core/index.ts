@@ -57,10 +57,20 @@ export {
   setUiKey,
   clearUiKey,
   testApiKey,
+  mapConnectionError,
   maskKey,
   OPENAI_KEY_CONFIG_KEY,
 } from './settings/api-key'
-export type { KeyStatus, KeySource, KeyDeps } from './settings/api-key'
+export type { KeyStatus, KeySource, KeyDeps, ConnectionDrafts } from './settings/api-key'
+export {
+  parseBaseUrl,
+  resolveBaseUrl,
+  getBaseUrlStatus,
+  setUiBaseUrl,
+  clearUiBaseUrl,
+  OPENAI_BASE_URL_CONFIG_KEY,
+} from './settings/base-url'
+export type { BaseUrlStatus, BaseUrlSource, BaseUrlDeps } from './settings/base-url'
 // Default tag values (003): non-secret, store-backed pre-fills for the form,
 // editable from the Settings tab. Replaces the removed env reader (no NUXT_DEFAULT_TAG_*).
 export {

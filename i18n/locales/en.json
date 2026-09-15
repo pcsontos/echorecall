@@ -328,15 +328,33 @@
       "placeholder": "sk-…",
       "save": "Save key",
       "clear": "Clear key",
-      "test": "Test key",
-      "testOk": "The active key works.",
+      "test": "Test Connection",
+      "testOk": "The connection works.",
       "testFail": "The active key didn’t work.",
+      "baseUrlLabel": "API Base URL",
+      "baseUrlPlaceholder": "http://localhost:4000/v1",
+      "baseUrlDescription": "Optional OpenAI-compatible gateway. Leave empty to use the public OpenAI speech service.",
+      "baseUrlSave": "Save URL",
+      "baseUrlClear": "Clear URL",
+      "baseUrlCurrent": "Current URL:",
+      "baseUrlNone": "No in-app URL — the environment URL is used if set, otherwise the public OpenAI service.",
+      "testCodes": {
+        "NO_KEY": "No API key is configured. Add a key in Settings or the environment.",
+        "UNREACHABLE": "Could not reach the speech service. Check the base URL and that the gateway is running.",
+        "UNAUTHORIZED": "The API key was rejected. Check the key and that it is valid for this gateway.",
+        "TIMEOUT": "The speech service did not respond in time. Try again.",
+        "UNKNOWN": "The connection test failed. Try again or check the gateway logs."
+      },
       "disabledNotice": "Set NUXT_APP_SECRET on the server to store an OpenAI key in the app. The environment key (if any) is still used.",
       "errors": {
         "load": "Could not load the key status.",
         "save": "Could not save the key. Please try again.",
         "disabled": "In-app key storage is disabled. Set NUXT_APP_SECRET to enable it.",
-        "clear": "Could not clear the key. Please try again."
+        "clear": "Could not clear the key. Please try again.",
+        "invalidBaseUrl": "Enter an absolute http:// or https:// URL.",
+        "baseUrlSave": "Could not save the base URL. Please try again.",
+        "baseUrlLoad": "Could not load the base URL.",
+        "baseUrlClear": "Could not clear the base URL. Please try again."
       }
     },
     "defaultTags": {

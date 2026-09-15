@@ -24,6 +24,10 @@ registerEndpoint(
   '/api/settings/openai-key',
   defineEventHandler(() => ({ configured: false, source: 'none', secretConfigured: true })),
 )
+registerEndpoint(
+  '/api/settings/openai-base-url',
+  defineEventHandler(() => ({ source: 'none' })),
+)
 registerEndpoint('/api/settings/defaults', defineEventHandler(() => ({ defaultTags: {} })))
 
 beforeEach(() => {

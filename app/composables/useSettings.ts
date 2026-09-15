@@ -1,3 +1,5 @@
+import { parseBaseUrl, type ConnectionTestResult } from '#core/client'
+
 /**
  * Masked status of the in-app OpenAI key, as served by the Settings API. The
  * plaintext key is never returned (FR-041); the UI only ever sees this shape.
@@ -9,34 +11,53 @@ export interface OpenAiKeyStatus {
   secretConfigured: boolean
 }
 
+/** Optional speech gateway Base URL status (configuration, not a secret). */
+export interface OpenAiBaseUrlStatus {
+  baseUrl?: string
+  source: 'ui' | 'env' | 'none'
+}
+
 /** Pull the stable domain error code out of an `$fetch` failure, if any. */
 function errorCode(err: unknown): string | undefined {
-  return (err as { data?: { error?: { code?: string } } })?.data?.error?.code
+  const data = (err as { data?: { error?: { code?: string }; data?: { error?: { code?: string } } } })
+    ?.data
+  return data?.error?.code ?? data?.data?.error?.code
 }
 
 /**
- * Manage the in-app OpenAI key from Settings (US8 / FR-041–045): load the masked
- * status, set/replace it (write-only — the plaintext is never read back), clear
- * it (reverting to the env key), and test the active key. When in-app storage is
- * disabled (no NUXT_APP_SECRET) the status reports `secretConfigured:false` and a
- * `PUT` is rejected with a clear message; the env key (if any) still works.
+ * Manage the in-app OpenAI key and optional Base URL from Settings (US8 /
+ * 009 · US1): load masked key status + URL, set/clear each independently,
+ * and Test Connection against the values currently shown. Saving a URL does
+ * not require NUXT_APP_SECRET and does not require a prior test.
  */
 export function useSettings() {
   const { t } = useI18n()
   const status = ref<OpenAiKeyStatus | null>(null)
+  const baseUrlStatus = ref<OpenAiBaseUrlStatus | null>(null)
+  const baseUrlDraft = ref('')
   const loading = ref(false)
   const saving = ref(false)
   const testing = ref(false)
-  const testResult = ref<boolean | null>(null)
+  const testResult = ref<ConnectionTestResult | null>(null)
   const error = ref<string | null>(null)
+  const baseUrlError = ref<string | null>(null)
 
   async function load() {
     loading.value = true
     error.value = null
+    baseUrlError.value = null
     try {
       status.value = await $fetch<OpenAiKeyStatus>('/api/settings/openai-key')
     } catch {
       error.value = t('settings.openaiKey.errors.load')
+    }
+    try {
+      const loaded = await $fetch<OpenAiBaseUrlStatus>('/api/settings/openai-base-url')
+      baseUrlStatus.value = loaded
+      // Don't clobber a URL the user already typed while this GET was in flight.
+      if (!baseUrlDraft.value) baseUrlDraft.value = loaded.baseUrl ?? ''
+    } catch {
+      baseUrlError.value = t('settings.openaiKey.errors.baseUrlLoad')
     } finally {
       loading.value = false
     }
@@ -78,20 +99,88 @@ export function useSettings() {
     }
   }
 
-  /** Test the active resolved key; sets `testResult` to whether it works. */
-  async function testKey(): Promise<void> {
+  /** Persist a Base URL (or reject invalid format). Does not call Test Connection. */
+  async function setBaseUrl(baseUrl: string): Promise<boolean> {
+    saving.value = true
+    baseUrlError.value = null
+    testResult.value = null
+    try {
+      parseBaseUrl(baseUrl)
+    } catch {
+      baseUrlError.value = t('settings.openaiKey.errors.invalidBaseUrl')
+      saving.value = false
+      return false
+    }
+    try {
+      baseUrlStatus.value = await $fetch<OpenAiBaseUrlStatus>('/api/settings/openai-base-url', {
+        method: 'PUT',
+        body: { baseUrl },
+      })
+      baseUrlDraft.value = baseUrlStatus.value.baseUrl ?? baseUrlDraft.value
+      return true
+    } catch (err) {
+      baseUrlError.value =
+        errorCode(err) === 'INVALID_BASE_URL'
+          ? t('settings.openaiKey.errors.invalidBaseUrl')
+          : t('settings.openaiKey.errors.baseUrlSave')
+      return false
+    } finally {
+      saving.value = false
+    }
+  }
+
+  /** Clear the in-app Base URL, reverting to env or the public OpenAI default. */
+  async function clearBaseUrl(): Promise<void> {
+    saving.value = true
+    baseUrlError.value = null
+    testResult.value = null
+    try {
+      baseUrlStatus.value = await $fetch<OpenAiBaseUrlStatus>('/api/settings/openai-base-url', {
+        method: 'DELETE',
+      })
+      baseUrlDraft.value = baseUrlStatus.value.baseUrl ?? ''
+    } catch {
+      baseUrlError.value = t('settings.openaiKey.errors.baseUrlClear')
+    } finally {
+      saving.value = false
+    }
+  }
+
+  /**
+   * Test the currently shown URL + key (drafts when provided). Never writes
+   * config or audio. Typed `{ ok }` / `{ ok: false, code }` — never the key.
+   */
+  async function testKey(drafts?: { baseUrl?: string; key?: string }): Promise<void> {
     testing.value = true
     error.value = null
     testResult.value = null
     try {
-      const res = await $fetch<{ ok: boolean }>('/api/settings/openai-key/test', { method: 'POST' })
-      testResult.value = res.ok
+      testResult.value = await $fetch<ConnectionTestResult>('/api/settings/openai-key/test', {
+        method: 'POST',
+        body: drafts ?? {},
+      })
     } catch {
-      testResult.value = false
+      testResult.value = { ok: false, code: 'UNKNOWN' }
     } finally {
       testing.value = false
     }
   }
 
-  return { status, loading, saving, testing, testResult, error, load, setKey, clearKey, testKey }
+  return {
+    status,
+    baseUrlStatus,
+    baseUrlDraft,
+    loading,
+    saving,
+    testing,
+    testResult,
+    error,
+    baseUrlError,
+    load,
+    setKey,
+    clearKey,
+    setBaseUrl,
+    clearBaseUrl,
+    testKey,
+  }
 }
