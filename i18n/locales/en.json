@@ -424,6 +424,7 @@
       "provider": "Provider",
       "providerOther": "Other",
       "model": "Model",
+      "charRate": "{rate} / char",
       "format": "Format",
       "reset": "Reset {field} to default",
       "retained": "{id} (current)",

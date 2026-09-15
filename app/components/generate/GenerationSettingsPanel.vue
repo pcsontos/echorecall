@@ -5,11 +5,13 @@ import {
   MODELS,
   OTHER_MODEL_PROVIDER,
   firstModelIdForProvider,
+  inputCostPerCharacter,
   listModelProviders,
   modelProviderOf,
   modelsForProvider,
   type CatalogEntry,
   type Format,
+  type GatewayRate,
   type Model,
   type Voice,
 } from '#core/client'
@@ -23,6 +25,7 @@ type GenSettingField = 'voiceId' | 'model' | 'format'
 const props = defineProps<{
   voices: ReadonlyArray<CatalogEntry | Voice>
   models?: ReadonlyArray<CatalogEntry>
+  rates?: Readonly<Record<string, GatewayRate>>
 }>()
 const voiceId = defineModel<string>('voiceId', { required: true })
 const model = defineModel<Model>('model', { required: true })
@@ -87,6 +90,11 @@ const selectedProvider = computed({
 })
 const modelItems = computed(() => modelsForProvider(allModels.value, selectedProvider.value))
 const formatItems = FORMATS.map((f) => ({ id: f.id, label: f.ext.toUpperCase() }))
+const charRateLabel = computed(() => {
+  const rate = inputCostPerCharacter(model.value, props.rates)
+  if (rate === undefined) return undefined
+  return t('generateNext.settings.charRate', { rate: `$${rate}` })
+})
 </script>
 
 <template>
@@ -118,6 +126,13 @@ const formatItems = FORMATS.map((f) => ({ id: f.id, label: f.ext.toUpperCase() }
           class="w-full"
         />
       </UFormField>
+      <p
+        v-if="charRateLabel"
+        data-test="model-char-rate"
+        class="shrink-0 pb-1.5 text-xs text-muted"
+      >
+        {{ charRateLabel }}
+      </p>
       <UButton
         data-test="gen-reset-model"
         icon="i-lucide-rotate-ccw"

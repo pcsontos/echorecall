@@ -424,6 +424,7 @@
       "provider": "Szolgáltató",
       "providerOther": "Egyéb",
       "model": "Modell",
+      "charRate": "{rate} / karakter",
       "format": "Formátum",
       "reset": "{field} visszaállítása alapértékre",
       "retained": "{id} (jelenlegi)",

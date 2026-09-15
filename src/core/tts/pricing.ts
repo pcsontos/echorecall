@@ -84,3 +84,15 @@ export function estimateItemCost(
   }
   return 'unavailable'
 }
+
+/**
+ * Gateway-reported input cost per character for a model id, when present and
+ * finite. Does not fall back to output or per-second rates (those stay in
+ * estimateItemCost). Used as the Generate Model-row rate label.
+ */
+export function inputCostPerCharacter(
+  model: string,
+  gatewayRates?: Readonly<Record<string, GatewayRate>>,
+): number | undefined {
+  return finiteNonNegative(gatewayRates?.[model]?.inputCostPerCharacter)
+}

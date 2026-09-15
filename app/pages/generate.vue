@@ -329,6 +329,7 @@ function onCancelBatchImport() {
           :format="format"
           :voices="catalog.voices"
           :models="catalog.models"
+          :rates="catalog.rates"
           @update:voice-id="onVoiceChanged"
           @update:model="onModelChanged"
           @update:format="onFormatChanged"

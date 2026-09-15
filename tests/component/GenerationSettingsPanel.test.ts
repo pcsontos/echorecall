@@ -171,4 +171,24 @@ describe('GenerationSettingsPanel', () => {
     await flushPromises()
     expect(wrapper.emitted('update:model')?.at(-1)?.[0]).toBe('elevenlabs/eleven_multilingual_v2')
   })
+
+  it('shows input cost per character next to Model when the selected model has a rate', async () => {
+    const wrapper = await mountPanel({
+      models: multiProviderModels,
+      model: 'elevenlabs/eleven_multilingual_v2',
+      rates: {
+        'elevenlabs/eleven_multilingual_v2': { inputCostPerCharacter: 0.00003 },
+      },
+    })
+    const label = wrapper.get('[data-test="model-char-rate"]')
+    expect(label.text()).toContain('0.00003')
+    expect(wrapper.get('[data-test="gen-settings-model-row"]').find('[data-test="model-char-rate"]').exists()).toBe(true)
+  })
+
+  it('hides the char-rate label when the selected model has no input cost', async () => {
+    const wrapper = await mountPanel({
+      rates: { tts1: { inputCostPerCharacter: 0.1 } },
+    })
+    expect(wrapper.find('[data-test="model-char-rate"]').exists()).toBe(false)
+  })
 })
