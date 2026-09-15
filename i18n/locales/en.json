@@ -421,6 +421,8 @@
     },
     "settings": {
       "voice": "Voice",
+      "provider": "Provider",
+      "providerOther": "Other",
       "model": "Model",
       "format": "Format",
       "reset": "Reset {field} to default",

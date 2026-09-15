@@ -53,6 +53,14 @@ describe('GenerationSettingsPanel', () => {
     }
   })
 
+  it('places Voice and Format on one row under Model', async () => {
+    const wrapper = await mountPanel()
+    const row = wrapper.get('[data-test="gen-settings-voice-format"]')
+    expect(row.find('[data-test="voice"]').exists()).toBe(true)
+    expect(row.find('[data-test="format"]').exists()).toBe(true)
+    expect(row.find('[data-test="model"]').exists()).toBe(false)
+  })
+
   it('does not expose a speed control (synthesis always runs at 1×)', async () => {
     const wrapper = await mountPanel()
     expect(wrapper.find('[data-test="speed"]').exists()).toBe(false)
@@ -128,5 +136,39 @@ describe('GenerationSettingsPanel', () => {
       expect(menu.props('createItem') ?? false, id).toBe(false)
       expect(wrapper.find(`[data-test="${id}-write-in"]`).exists(), id).toBe(false)
     }
+  })
+
+  const multiProviderModels = [
+    { id: 'gpt-4o-mini-tts', label: 'gpt-4o-mini-tts', source: 'builtin' as const, provider: 'openai' },
+    { id: 'tts-1', label: 'tts-1', source: 'builtin' as const, provider: 'openai' },
+    {
+      id: 'elevenlabs/eleven_multilingual_v2',
+      label: 'elevenlabs/eleven_multilingual_v2',
+      source: 'gateway' as const,
+      provider: 'elevenlabs',
+    },
+  ]
+
+  it('hides Provider when the catalog has a single provider', async () => {
+    const wrapper = await mountPanel()
+    expect(wrapper.find('[data-test="provider"]').exists()).toBe(false)
+  })
+
+  it('places Provider on the Model row when multiple providers exist', async () => {
+    const wrapper = await mountPanel({ models: multiProviderModels })
+    const row = wrapper.get('[data-test="gen-settings-model-row"]')
+    expect(row.find('[data-test="provider"]').exists()).toBe(true)
+    expect(row.find('[data-test="model"]').exists()).toBe(true)
+    expect(selectMenu(wrapper, 'provider').props('createItem') ?? false).toBe(false)
+  })
+
+  it('lists only the selected provider’s models and auto-selects the first on change', async () => {
+    const wrapper = await mountPanel({ models: multiProviderModels })
+    expect(itemIds(wrapper, 'model')).toEqual(['gpt-4o-mini-tts', 'tts-1'])
+    expect(itemIds(wrapper, 'model')).not.toContain('elevenlabs/eleven_multilingual_v2')
+
+    pickMenu(wrapper, 'provider', 'elevenlabs')
+    await flushPromises()
+    expect(wrapper.emitted('update:model')?.at(-1)?.[0]).toBe('elevenlabs/eleven_multilingual_v2')
   })
 })

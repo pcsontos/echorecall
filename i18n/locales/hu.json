@@ -421,6 +421,8 @@
     },
     "settings": {
       "voice": "Hang",
+      "provider": "Szolgáltató",
+      "providerOther": "Egyéb",
       "model": "Modell",
       "format": "Formátum",
       "reset": "{field} visszaállítása alapértékre",
