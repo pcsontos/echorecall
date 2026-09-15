@@ -17,6 +17,13 @@ export {
   formatInfo,
 } from './tts/provider'
 export type { TtsProvider } from './tts/provider'
+export type {
+  CatalogEntry,
+  ConnectionTestCode,
+  ConnectionTestResult,
+  GatewayRate,
+  SpeechCatalog,
+} from './tts/catalog'
 export { MAX_INPUT_LENGTH, normalizeSpeed } from './tts/generate'
 // Per-item cost estimate (007 · US5): pure, browser-safe pricing for the Generate editor.
 export { MODEL_PRICING, estimateItemCost } from './tts/pricing'

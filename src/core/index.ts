@@ -2,6 +2,13 @@
 // import from here; browser-side adapters import the safe subset from './client'
 // (alias '#core/client') so server-only deps never reach the client bundle.
 export * from './client'
+export type {
+  CatalogEntry,
+  ConnectionTestCode,
+  ConnectionTestResult,
+  GatewayRate,
+  SpeechCatalog,
+} from './tts/catalog'
 
 // Domain orchestration: browser-safe at runtime, but needs a server-provided
 // TtsProvider, so it lives in the server entry only.

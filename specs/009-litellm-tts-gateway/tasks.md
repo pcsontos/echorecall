@@ -39,9 +39,9 @@ Shared core in `src/core/`; Nuxt adapters in `app/` and `server/`; tests in `tes
 
 **Documented TDD exemption for T003–T005**: Type-only widening and exports so test files compile. No parse/validate/network/UI logic.
 
-- [ ] T003 Widen `Model` from the three-literal union to `string` in `src/core/shared/types.ts` under the documented non-behavioral TDD exemption
-- [ ] T004 [P] Add compile-time-only `CatalogEntry`, `GatewayRate`, `SpeechCatalog`, and `ConnectionTestResult` types in `src/core/tts/catalog.ts` under the documented non-behavioral TDD exemption
-- [ ] T005 Export the new catalog/connection types from `src/core/client.ts` and `src/core/index.ts` under the documented non-behavioral TDD exemption
+- [x] T003 Widen `Model` from the three-literal union to `string` in `src/core/shared/types.ts` under the documented non-behavioral TDD exemption
+- [x] T004 [P] Add compile-time-only `CatalogEntry`, `GatewayRate`, `SpeechCatalog`, and `ConnectionTestResult` types in `src/core/tts/catalog.ts` under the documented non-behavioral TDD exemption
+- [x] T005 Export the new catalog/connection types from `src/core/client.ts` and `src/core/index.ts` under the documented non-behavioral TDD exemption
 
 **Checkpoint**: Custom model strings type-check; catalog/test result shapes exist as types only.
 

@@ -4,8 +4,12 @@ export interface Voice {
   label: string
 }
 
-/** TTS model identifiers. Instructions are honoured only by `gpt-4o-mini-tts`. */
-export type Model = 'tts-1' | 'tts-1-hd' | 'gpt-4o-mini-tts'
+/**
+ * TTS model identifier. Built-in catalog values are `tts-1`, `tts-1-hd`, and
+ * `gpt-4o-mini-tts`; gateway/custom ids are any other non-empty string.
+ * Instructions are honoured only by `gpt-4o-mini-tts`.
+ */
+export type Model = string
 
 /** Output audio formats offered by the provider. */
 export type Format = 'mp3' | 'wav' | 'flac' | 'opus' | 'aac' | 'pcm'
