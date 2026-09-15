@@ -20,9 +20,12 @@ export default defineNuxtConfig({
   typescript: {
     strict: true,
   },
-  // Server-only secrets / config. Override via env: NUXT_OPENAI_API_KEY, NUXT_DATA_DIR, NUXT_APP_SECRET
+  // Server-only secrets / config. Override via env: NUXT_OPENAI_API_KEY,
+  // NUXT_OPENAI_BASE_URL, NUXT_DATA_DIR, NUXT_APP_SECRET
   runtimeConfig: {
     openaiApiKey: '',
+    // Optional OpenAI-compatible speech gateway (LiteLLM or equivalent). Empty → public OpenAI.
+    openaiBaseUrl: '',
     dataDir: '',
     // NUXT_APP_SECRET — enables encrypted in-app OpenAI key storage (US8); env key is used when unset.
     appSecret: '',

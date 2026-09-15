@@ -26,8 +26,8 @@ Shared core in `src/core/`; Nuxt adapters in `app/` and `server/`; tests in `tes
 
 **Documented TDD exemption for T001–T002**: These tasks only add empty runtime/env plumbing so later tests can read `openaiBaseUrl`. They introduce no parse, persist, UI, or speech behavior. Any observable behavior discovered here MUST be moved behind the US1 red gate.
 
-- [ ] T001 Add empty server-only `runtimeConfig.openaiBaseUrl` (env `NUXT_OPENAI_BASE_URL`) in `nuxt.config.ts` under the documented non-behavioral TDD exemption
-- [ ] T002 [P] Pass `NUXT_OPENAI_BASE_URL` through the service `environment` block in `docker-compose.yml` under the documented non-behavioral TDD exemption
+- [x] T001 Add empty server-only `runtimeConfig.openaiBaseUrl` (env `NUXT_OPENAI_BASE_URL`) in `nuxt.config.ts` under the documented non-behavioral TDD exemption
+- [x] T002 [P] Pass `NUXT_OPENAI_BASE_URL` through the service `environment` block in `docker-compose.yml` under the documented non-behavioral TDD exemption
 
 ---
 
