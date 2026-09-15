@@ -179,3 +179,46 @@ items: []
     )
   })
 })
+
+describe('YAML batch import – custom identifiers (009 · US2)', () => {
+  it('accepts prefixed custom voiceId and model as valid items', () => {
+    const result = parseYaml(`
+schema: echorecall.batch
+version: 1
+items:
+  - text: Hello from a gateway voice
+    voiceId: azure/en-US-JennyNeural
+    model: elevenlabs/eleven_multilingual_v2
+`)
+    expect(result.ok).toBe(true)
+    if (!result.ok) throw new Error(`Expected preview, received ${result.error.code}`)
+    expect(result.preview.counts).toEqual({ valid: 1, rejected: 0, blank: 0 })
+    const candidate = result.preview.candidates[0]
+    expect(candidate?.valid).toBe(true)
+    if (!candidate?.valid) throw new Error('Expected a valid candidate')
+    expect(candidate.input.voiceId).toBe('azure/en-US-JennyNeural')
+    expect(candidate.input.model).toBe('elevenlabs/eleven_multilingual_v2')
+  })
+
+  it('still emits invalidVoice/invalidModel for empty or illegal identifiers', () => {
+    const result = parseYaml(`
+schema: echorecall.batch
+version: 1
+items:
+  - text: Bad identifiers
+    voiceId: ""
+    model: "bad id!"
+`)
+    expect(result.ok).toBe(true)
+    if (!result.ok) throw new Error(`Expected preview, received ${result.error.code}`)
+    const candidate = result.preview.candidates[0]
+    expect(candidate?.valid).toBe(false)
+    if (candidate?.valid !== false) throw new Error('Expected a rejected candidate')
+    expect(candidate.issues).toEqual(
+      expect.arrayContaining([
+        { code: 'invalidVoice', path: 'items[0].voiceId' },
+        { code: 'invalidModel', path: 'items[0].model' },
+      ]),
+    )
+  })
+})

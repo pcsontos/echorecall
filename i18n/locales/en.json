@@ -423,7 +423,15 @@
       "voice": "Voice",
       "model": "Model",
       "format": "Format",
-      "reset": "Reset {field} to default"
+      "reset": "Reset {field} to default",
+      "retained": "{id} (current)",
+      "catalogError": {
+        "UNREACHABLE": "Could not load extra voices and models from the speech gateway. Built-in options are still available.",
+        "UNAUTHORIZED": "The speech gateway rejected the API key, so extra voices and models could not be loaded. Built-in options are still available.",
+        "TIMEOUT": "The speech gateway did not respond in time. Built-in voices and models are still available.",
+        "UNKNOWN": "Could not load extra voices and models from the speech gateway. Built-in options are still available.",
+        "NO_KEY": "No API key is configured, so extra voices and models could not be loaded. Built-in options are still available."
+      }
     },
     "actionBar": {
       "summary": "In queue",

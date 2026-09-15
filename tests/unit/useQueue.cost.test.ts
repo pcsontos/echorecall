@@ -78,4 +78,21 @@ describe('useQueue queueCost (US5)', () => {
     expect(cost.totalUsd).toBe(0)
     expect(cost.unavailableCount).toBe(0)
   })
+
+  it('includes gateway-priced custom models in totalUsd and counts unpriced ones as unavailable', async () => {
+    const rates = {
+      'elevenlabs/eleven_multilingual_v2': { inputCostPerCharacter: 0.00003 },
+    }
+    const q = useQueue({ gatewayRates: () => rates })
+    const priced = q.addItem('abcd')!
+    const unpriced = q.addItem('xyz')!
+    q.updateItem(priced.clientId, { model: 'elevenlabs/eleven_multilingual_v2' })
+    q.updateItem(unpriced.clientId, { model: 'unknown-custom' })
+    await nextTick()
+
+    expect(q.queueCost.value.perItem.get(priced.clientId)).toEqual({ amountUsd: 4 * 0.00003 })
+    expect(q.queueCost.value.perItem.get(unpriced.clientId)).toBe('unavailable')
+    expect(q.queueCost.value.unavailableCount).toBe(1)
+    expect(q.queueCost.value.totalUsd).toBeCloseTo(4 * 0.00003, 12)
+  })
 })

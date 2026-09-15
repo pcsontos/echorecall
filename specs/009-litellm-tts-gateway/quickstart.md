@@ -78,6 +78,48 @@ Expected failures (missing US1 behavior, not environment noise):
 
 `better-sqlite3` was rebuilt for the current Node ABI so the settings-key failures above are behavioral, not native-module mismatch.
 
+### US2 red record (T031, 2026-09-15)
+
+Approved tests T023–T030 were run before implementation. Focused command:
+
+```bash
+pnpm exec vitest run tests/unit/identifiers.test.ts tests/unit/catalog-merge.test.ts tests/unit/generate.test.ts tests/unit/batch-yaml.test.ts tests/unit/generation-defaults.test.ts tests/unit/gateway-client.test.ts
+pnpm exec vitest run --config vitest.nuxt.config.ts tests/component/GenerationSettingsPanel.test.ts tests/component/generate-next.gensettings.test.ts
+```
+
+Expected failures (missing US2 behavior, not environment noise):
+
+| File | Result | Why |
+|------|--------|-----|
+| `tests/unit/identifiers.test.ts` | suite fail (0 tests) | `Cannot find module '../../src/core/tts/identifiers'` |
+| `tests/unit/catalog-merge.test.ts` | 8 fail | `mergeSpeechCatalog` is not a function |
+| `tests/unit/generate.test.ts` | 3 fail / 12 pass | custom ids still catalog-rejected (`bogus`, `gpt-9000`, prefixed gateway ids) |
+| `tests/unit/batch-yaml.test.ts` | 1 fail / 12 pass | prefixed custom `voiceId`/`model` still `invalidVoice`/`invalidModel` |
+| `tests/unit/generation-defaults.test.ts` | 2 fail / 9 pass | sanitize drops valid gateway identifiers |
+| `tests/unit/gateway-client.test.ts` | suite fail (0 tests) | `Cannot find module '../../src/core/tts/gateway-client'` |
+| `tests/component/GenerationSettingsPanel.test.ts` | 2 fail / 5 pass | Model menu stays built-in `MODELS`; missing current value is not retained |
+| `tests/component/generate-next.gensettings.test.ts` | 2 fail / 7 pass | page still loads `/api/voices` only; no `catalogError` status. Custom-id POST already forwards emitted ids through the mocked generate path |
+
+### US3 red record (T048, 2026-09-15)
+
+Approved tests T046–T047 ran against the existing per-item continuation path (no EchoRecall retry loop). Focused command:
+
+```bash
+pnpm exec vitest run tests/integration/gateway-batch.test.ts tests/integration/generate-next.progress-cancel.test.ts
+```
+
+Result: already green. Failover that returns audio is saved; a later `ProviderUnavailableError` / HTTP error isolates that item and the queue continues.
+
+### US4 red record (T056, 2026-09-15)
+
+Approved tests T053–T055 were authored for gateway rates, then implemented in the same cycle. Focused command after implementation:
+
+```bash
+pnpm exec vitest run tests/unit/pricing.test.ts tests/unit/useQueue.cost.test.ts tests/unit/gateway-client.test.ts
+```
+
+Result: green. Built-in table still wins; gateway character / per-second rates estimate; unpriced models are `'unavailable'` (never `$0.00`).
+
 ## 5. Manual walkthrough (optional live gateway)
 
 Prerequisites: a reachable LiteLLM (or compatible) proxy with at least one speech model, and a key the proxy accepts.
@@ -91,6 +133,23 @@ Prerequisites: a reachable LiteLLM (or compatible) proxy with at least one speec
 7. Clear the Base URL → Save → catalog and generation return to the built-in OpenAI path.
 
 Do not add this live walkthrough to CI.
+
+### T064 SC-001 timed walkthrough (2026-09-15)
+
+Not executed in this implementation session: no operator LiteLLM (or compatible) gateway was running. The automated Settings/Generate/catalog suites cover the same steps with injected fakes. Re-run the live walkthrough locally when a proxy is available and record elapsed time here (target: under 3 minutes with the gateway already running).
+
+### T065 automated + out-of-scope record (2026-09-15)
+
+| Check | Result |
+|-------|--------|
+| `pnpm test` | 66 files / 450 tests passed |
+| `pnpm test:component` | 42 files / 267 tests passed |
+| `pnpm typecheck` | passed |
+| `pnpm lint` | passed |
+| Default suites make live network calls | false (gateway client injected/faked; TTS provider mocked) |
+| ElevenLabs / Azure / Cartesia packages in `package.json` | false |
+| LiteLLM binary or container defined by this feature | false |
+| Speech-to-text, realtime WebSocket, or audio-file import added | false |
 
 ## 6. Out of scope checks (must stay false)
 

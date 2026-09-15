@@ -110,9 +110,9 @@ describe('POST /api/generations', () => {
     expect(mapError(err)).toEqual({ status: 400, code: 'INPUT_TOO_LONG' })
   })
 
-  it('unknown voice -> 400 INVALID_VOICE, provider untouched, nothing persisted', async () => {
+  it('illegal voice -> 400 INVALID_VOICE, provider untouched, nothing persisted', async () => {
     const provider = new FakeProvider('ok')
-    const err = await generateSpeech(provider, { text: 'hi', voiceId: 'nope' }).catch((e) => e)
+    const err = await generateSpeech(provider, { text: 'hi', voiceId: '@@@' }).catch((e) => e)
 
     expect(provider.calls).toBe(0)
     expect(service.list().rows).toHaveLength(0)
@@ -161,12 +161,12 @@ describe('POST /api/generations', () => {
     expect(Buffer.compare(await service.readAudio(b.id), Buffer.from('bbb'))).toBe(0)
   })
 
-  it('unknown model -> 400 INVALID_MODEL, provider untouched, nothing persisted', async () => {
+  it('illegal model -> 400 INVALID_MODEL, provider untouched, nothing persisted', async () => {
     const provider = new FakeProvider('ok')
     const err = await generateSpeech(provider, {
       text: 'hi',
       voiceId: 'alloy',
-      model: 'gpt-9000',
+      model: '@@@',
     }).catch((e) => e)
 
     expect(provider.calls).toBe(0)

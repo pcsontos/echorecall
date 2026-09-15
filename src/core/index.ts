@@ -19,6 +19,8 @@ export { generateSpeech } from './tts/generate'
 export { newId } from './shared/ids'
 export { OpenAiTtsProvider } from './tts/openai-provider'
 export type { OpenAiTtsConfig } from './tts/openai-provider'
+export { createSpeechGatewayClient, GatewayDiscoveryError } from './tts/gateway-client'
+export type { SpeechGatewayClient, SpeechGatewayClientDeps } from './tts/gateway-client'
 
 export type {
   BulkCleanFilter,

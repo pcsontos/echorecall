@@ -37,8 +37,8 @@ export class OpenAiTtsProvider implements TtsProvider {
   }): Promise<Buffer> {
     const params: SpeechCreateParams = {
       model: input.model,
-      // voiceId is validated against our catalog (which mirrors OpenAI's voices)
-      // before this adapter is reached; cast to the SDK's narrower union.
+      // voice/model are acceptable identifiers (built-in or custom). The SDK
+      // voice union is narrower than gateway ids, so cast at the boundary.
       voice: input.voiceId as SpeechCreateParams['voice'],
       input: input.text,
       response_format: input.format,
@@ -52,6 +52,7 @@ export class OpenAiTtsProvider implements TtsProvider {
       params.speed = input.speed
     }
     const response = await this.client.audio.speech.create(params)
+    // One SDK call: bytes or throw. Gateway-internal failover is invisible here.
     return Buffer.from(await response.arrayBuffer())
   }
 }

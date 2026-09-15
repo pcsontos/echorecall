@@ -27,8 +27,8 @@ export default defineEventHandler(async (event) => {
     }
 
     // Validation (voice/model/format/length + instructions rule) runs inside
-    // generateSpeech before any provider call; the provider is resolved per
-    // request (env key today; UI→env precedence lands in US8).
+    // generateSpeech before any provider call. The provider is resolved per
+    // request from the active key + optional base URL (UI→env).
     const bytes = await generateSpeech(getTtsProvider(), input)
 
     // After validation the model/format are known-good; the audio is tagged with

@@ -1,5 +1,5 @@
 import type { Format, Metadata, Model } from '#core/client'
-import { MAX_INPUT_LENGTH, isKnownFormat, isKnownModel } from '#core/client'
+import { MAX_INPUT_LENGTH, isAcceptableModel, isAcceptableVoice, isKnownFormat } from '#core/client'
 
 // Saved-queue file format (005 · US2 / FR-013, research §R4, data-model §3). The
 // queue is saved as a versioned JSON document the user owns — a browser download,
@@ -52,8 +52,8 @@ function sanitizeItem(raw: unknown): QueueFileItem | null {
   const text = typeof raw.text === 'string' ? raw.text.trim() : ''
   if (text.length === 0 || text.length > MAX_INPUT_LENGTH) return null
 
-  if (typeof raw.voiceId !== 'string' || raw.voiceId.length === 0) return null
-  if (typeof raw.model !== 'string' || !isKnownModel(raw.model)) return null
+  if (typeof raw.voiceId !== 'string' || !isAcceptableVoice(raw.voiceId)) return null
+  if (typeof raw.model !== 'string' || !isAcceptableModel(raw.model)) return null
   if (typeof raw.format !== 'string' || !isKnownFormat(raw.format)) return null
 
   if (raw.metadata !== undefined && !isObject(raw.metadata)) return null

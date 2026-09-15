@@ -24,6 +24,13 @@ export type {
   GatewayRate,
   SpeechCatalog,
 } from './tts/catalog'
+export { mergeSpeechCatalog } from './tts/catalog'
+export {
+  MAX_IDENTIFIER_LENGTH,
+  isAcceptableModel,
+  isAcceptableVoice,
+  isValidIdentifier,
+} from './tts/identifiers'
 export { parseBaseUrl } from './settings/base-url'
 export { MAX_INPUT_LENGTH, normalizeSpeed } from './tts/generate'
 // Per-item cost estimate (007 · US5): pure, browser-safe pricing for the Generate editor.

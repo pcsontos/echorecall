@@ -88,32 +88,32 @@ Shared core in `src/core/`; Nuxt adapters in `app/` and `server/`; tests in `tes
 
 ### Tests for User Story 2 — write and verify red first
 
-- [ ] T023 [P] [US2] Write failing `isValidIdentifier` / `isAcceptableVoice` / `isAcceptableModel` tests (length, charset, catalog membership) in `tests/unit/identifiers.test.ts`
-- [ ] T024 [P] [US2] Write failing merge tests for builtin-first, gateway-only append, de-dupe, retained ids, mode filter, and `catalogError` fallback in `tests/unit/catalog-merge.test.ts`
-- [ ] T025 [P] [US2] Rewrite failing `generateSpeech` tests to accept custom ids and reject empty/overlong/illegal identifiers while still rejecting unknown formats in `tests/unit/generate.test.ts`
-- [ ] T026 [P] [US2] Extend failing batch tests so prefixed custom `voiceId`/`model` are valid and empty/illegal ids still emit `invalidVoice`/`invalidModel` in `tests/unit/batch-yaml.test.ts`
-- [ ] T027 [P] [US2] Extend failing generation-defaults sanitize tests to keep valid custom identifiers in `tests/unit/generation-defaults.test.ts`
-- [ ] T028 [P] [US2] Write failing gateway-client tests (injected `models.list` / `model/info`, speech-mode filter, rates parse, failure mapping) in `tests/unit/gateway-client.test.ts`
-- [ ] T029 [P] [US2] Extend failing Voice/Model menu tests for merged items, retained current value, and no write-in in `tests/component/GenerationSettingsPanel.test.ts`
-- [ ] T030 [P] [US2] Extend failing Generate-page tests for catalog load, builtin-on-error announcement, and custom-id generation in `tests/component/generate-next.gensettings.test.ts`
-- [ ] T031 [US2] Obtain explicit user/reviewer approval for the US2 tests from T023–T030, then run the approved focused tests and record the expected failures in `specs/009-litellm-tts-gateway/quickstart.md`
+- [x] T023 [P] [US2] Write failing `isValidIdentifier` / `isAcceptableVoice` / `isAcceptableModel` tests (length, charset, catalog membership) in `tests/unit/identifiers.test.ts`
+- [x] T024 [P] [US2] Write failing merge tests for builtin-first, gateway-only append, de-dupe, retained ids, mode filter, and `catalogError` fallback in `tests/unit/catalog-merge.test.ts`
+- [x] T025 [P] [US2] Rewrite failing `generateSpeech` tests to accept custom ids and reject empty/overlong/illegal identifiers while still rejecting unknown formats in `tests/unit/generate.test.ts`
+- [x] T026 [P] [US2] Extend failing batch tests so prefixed custom `voiceId`/`model` are valid and empty/illegal ids still emit `invalidVoice`/`invalidModel` in `tests/unit/batch-yaml.test.ts`
+- [x] T027 [P] [US2] Extend failing generation-defaults sanitize tests to keep valid custom identifiers in `tests/unit/generation-defaults.test.ts`
+- [x] T028 [P] [US2] Write failing gateway-client tests (injected `models.list` / `model/info`, speech-mode filter, rates parse, failure mapping) in `tests/unit/gateway-client.test.ts`
+- [x] T029 [P] [US2] Extend failing Voice/Model menu tests for merged items, retained current value, and no write-in in `tests/component/GenerationSettingsPanel.test.ts`
+- [x] T030 [P] [US2] Extend failing Generate-page tests for catalog load, builtin-on-error announcement, and custom-id generation in `tests/component/generate-next.gensettings.test.ts`
+- [x] T031 [US2] Obtain explicit user/reviewer approval for the US2 tests from T023–T030, then run the approved focused tests and record the expected failures in `specs/009-litellm-tts-gateway/quickstart.md`
 
 ### Implementation for User Story 2
 
-- [ ] T032 [US2] Implement `MAX_IDENTIFIER_LENGTH`, `isValidIdentifier`, `isAcceptableVoice`, and `isAcceptableModel` in `src/core/tts/identifiers.ts`
-- [ ] T033 [US2] Switch `generateSpeech` validation from catalog-only checks to acceptable-identifier gates in `src/core/tts/generate.ts`
-- [ ] T034 [US2] Switch batch `invalidVoice`/`invalidModel` to acceptable-identifier rules in `src/core/batch/validate-batch.ts`
-- [ ] T035 [US2] Keep valid custom identifiers in generation-defaults `sanitize` in `src/core/settings/generation-defaults.ts`
-- [ ] T036 [US2] Implement `mergeSpeechCatalog` in `src/core/tts/catalog.ts`
-- [ ] T037 [US2] Implement the injectable `SpeechGatewayClient` (SDK `models.list`, optional `{baseURL}/model/info` via `fetch`) in `src/core/tts/gateway-client.ts`
-- [ ] T038 [US2] Pass custom `voice`/`model` strings through `src/core/tts/openai-provider.ts`
-- [ ] T039 [US2] Export identifier and merge helpers from `src/core/client.ts` and the gateway client from `src/core/index.ts`
-- [ ] T040 [US2] Implement `GET /api/tts/catalog` returning merged catalog, rates, and optional `catalogError` in `server/api/tts/catalog.get.ts`
-- [ ] T041 [US2] Add `useSpeechCatalog` to load `GET /api/tts/catalog` in `app/composables/useSpeechCatalog.ts`
-- [ ] T042 [US2] Bind Voice/Model menus to merged catalog items and append a retained current value in `app/components/generate/GenerationSettingsPanel.vue`
-- [ ] T043 [US2] Wire catalog load, `catalogError` status, and retained ids in `app/pages/generate.vue`
-- [ ] T044 [US2] Add English/Hungarian catalog-error and retained-value copy in `i18n/locales/en.json` and `i18n/locales/hu.json`
-- [ ] T045 [US2] Run the US2-focused tests until green, then refactor without changing the contracts in `tests/unit/identifiers.test.ts`, `tests/unit/catalog-merge.test.ts`, `tests/unit/generate.test.ts`, `tests/unit/batch-yaml.test.ts`, `tests/unit/generation-defaults.test.ts`, `tests/unit/gateway-client.test.ts`, `tests/component/GenerationSettingsPanel.test.ts`, and `tests/component/generate-next.gensettings.test.ts`
+- [x] T032 [US2] Implement `MAX_IDENTIFIER_LENGTH`, `isValidIdentifier`, `isAcceptableVoice`, and `isAcceptableModel` in `src/core/tts/identifiers.ts`
+- [x] T033 [US2] Switch `generateSpeech` validation from catalog-only checks to acceptable-identifier gates in `src/core/tts/generate.ts`
+- [x] T034 [US2] Switch batch `invalidVoice`/`invalidModel` to acceptable-identifier rules in `src/core/batch/validate-batch.ts`
+- [x] T035 [US2] Keep valid custom identifiers in generation-defaults `sanitize` in `src/core/settings/generation-defaults.ts`
+- [x] T036 [US2] Implement `mergeSpeechCatalog` in `src/core/tts/catalog.ts`
+- [x] T037 [US2] Implement the injectable `SpeechGatewayClient` (SDK `models.list`, optional `{baseURL}/model/info` via `fetch`) in `src/core/tts/gateway-client.ts`
+- [x] T038 [US2] Pass custom `voice`/`model` strings through `src/core/tts/openai-provider.ts`
+- [x] T039 [US2] Export identifier and merge helpers from `src/core/client.ts` and the gateway client from `src/core/index.ts`
+- [x] T040 [US2] Implement `GET /api/tts/catalog` returning merged catalog, rates, and optional `catalogError` in `server/api/tts/catalog.get.ts`
+- [x] T041 [US2] Add `useSpeechCatalog` to load `GET /api/tts/catalog` in `app/composables/useSpeechCatalog.ts`
+- [x] T042 [US2] Bind Voice/Model menus to merged catalog items and append a retained current value in `app/components/generate/GenerationSettingsPanel.vue`
+- [x] T043 [US2] Wire catalog load, `catalogError` status, and retained ids in `app/pages/generate.vue`
+- [x] T044 [US2] Add English/Hungarian catalog-error and retained-value copy in `i18n/locales/en.json` and `i18n/locales/hu.json`
+- [x] T045 [US2] Run the US2-focused tests until green, then refactor without changing the contracts in `tests/unit/identifiers.test.ts`, `tests/unit/catalog-merge.test.ts`, `tests/unit/generate.test.ts`, `tests/unit/batch-yaml.test.ts`, `tests/unit/generation-defaults.test.ts`, `tests/unit/gateway-client.test.ts`, `tests/component/GenerationSettingsPanel.test.ts`, and `tests/component/generate-next.gensettings.test.ts`
 
 **Checkpoint**: Custom ids generate and import; Generate shows builtin ∪ gateway; discovery failure keeps builtin plus an announcement.
 
@@ -127,16 +127,16 @@ Shared core in `src/core/`; Nuxt adapters in `app/` and `server/`; tests in `tes
 
 ### Tests for User Story 3 — write and verify red first
 
-- [ ] T046 [P] [US3] Write failing multi-item tests: synthesize returning audio is saved/tagged; a later `ProviderUnavailableError` does not drop prior successes or skip remaining items in `tests/integration/gateway-batch.test.ts`
-- [ ] T047 [P] [US3] Extend failing progress-run tests that per-item HTTP errors leave successes in the Library and continue the queue in `tests/integration/generate-next.progress-cancel.test.ts`
-- [ ] T048 [US3] Obtain explicit user/reviewer approval for the US3 tests from T046–T047, then run the approved focused tests and record the expected failures in `specs/009-litellm-tts-gateway/quickstart.md`
+- [x] T046 [P] [US3] Write failing multi-item tests: synthesize returning audio is saved/tagged; a later `ProviderUnavailableError` does not drop prior successes or skip remaining items in `tests/integration/gateway-batch.test.ts`
+- [x] T047 [P] [US3] Extend failing progress-run tests that per-item HTTP errors leave successes in the Library and continue the queue in `tests/integration/generate-next.progress-cancel.test.ts`
+- [x] T048 [US3] Obtain explicit user/reviewer approval for the US3 tests from T046–T047, then run the approved focused tests and record the expected failures in `specs/009-litellm-tts-gateway/quickstart.md`
 
 ### Implementation for User Story 3
 
-- [ ] T049 [US3] Keep `generateSpeech` mapping of provider exceptions to `ProviderUnavailableError` with no EchoRecall retry/failover loop in `src/core/tts/generate.ts`
-- [ ] T050 [US3] Keep `OpenAiTtsProvider.synthesize` as a single SDK speech call that returns bytes or throws in `src/core/tts/openai-provider.ts`
-- [ ] T051 [US3] Confirm each Generate request resolves `getTtsProvider()` (key + base URL) in `server/api/generations.post.ts` and that `app/composables/useGeneration.ts` continues after isolated item failures
-- [ ] T052 [US3] Run the US3-focused tests until green in `tests/integration/gateway-batch.test.ts` and `tests/integration/generate-next.progress-cancel.test.ts`
+- [x] T049 [US3] Keep `generateSpeech` mapping of provider exceptions to `ProviderUnavailableError` with no EchoRecall retry/failover loop in `src/core/tts/generate.ts`
+- [x] T050 [US3] Keep `OpenAiTtsProvider.synthesize` as a single SDK speech call that returns bytes or throws in `src/core/tts/openai-provider.ts`
+- [x] T051 [US3] Confirm each Generate request resolves `getTtsProvider()` (key + base URL) in `server/api/generations.post.ts` and that `app/composables/useGeneration.ts` continues after isolated item failures
+- [x] T052 [US3] Run the US3-focused tests until green in `tests/integration/gateway-batch.test.ts` and `tests/integration/generate-next.progress-cancel.test.ts`
 
 **Checkpoint**: Gateway failover that still returns audio is a normal success; a final error fails one item and does not abort the run.
 
@@ -150,17 +150,17 @@ Shared core in `src/core/`; Nuxt adapters in `app/` and `server/`; tests in `tes
 
 ### Tests for User Story 4 — write and verify red first
 
-- [ ] T053 [P] [US4] Extend failing `estimateItemCost` tests for built-in table precedence, character/per-second gateway rates, ignored non-finite fields, empty-text rules, and `'unavailable'` (never `$0.00`) in `tests/unit/pricing.test.ts`
-- [ ] T054 [P] [US4] Extend failing `queueCost` tests to pass `gatewayRates`, include gateway-priced items in `totalUsd`, and count unpriced custom models as unavailable in `tests/unit/useQueue.cost.test.ts`
-- [ ] T055 [P] [US4] Extend failing catalog tests so parsed `rates` appear on `GET /api/tts/catalog` payloads in `tests/unit/gateway-client.test.ts`
-- [ ] T056 [US4] Obtain explicit user/reviewer approval for the US4 tests from T053–T055, then run the approved focused tests and record the expected failures in `specs/009-litellm-tts-gateway/quickstart.md`
+- [x] T053 [P] [US4] Extend failing `estimateItemCost` tests for built-in table precedence, character/per-second gateway rates, ignored non-finite fields, empty-text rules, and `'unavailable'` (never `$0.00`) in `tests/unit/pricing.test.ts`
+- [x] T054 [P] [US4] Extend failing `queueCost` tests to pass `gatewayRates`, include gateway-priced items in `totalUsd`, and count unpriced custom models as unavailable in `tests/unit/useQueue.cost.test.ts`
+- [x] T055 [P] [US4] Extend failing catalog tests so parsed `rates` appear on `GET /api/tts/catalog` payloads in `tests/unit/gateway-client.test.ts`
+- [x] T056 [US4] Obtain explicit user/reviewer approval for the US4 tests from T053–T055, then run the approved focused tests and record the expected failures in `specs/009-litellm-tts-gateway/quickstart.md`
 
 ### Implementation for User Story 4
 
-- [ ] T057 [US4] Add optional `gatewayRates` to `estimateItemCost` with the documented resolution order in `src/core/tts/pricing.ts`
-- [ ] T058 [US4] Map `model/info` cost fields into `GatewayRate` in `src/core/tts/gateway-client.ts` and include `rates` from `server/api/tts/catalog.get.ts`
-- [ ] T059 [US4] Pass catalog `rates` into `estimateItemCost` from `app/composables/useQueue.ts`
-- [ ] T060 [US4] Run the US4-focused tests until green in `tests/unit/pricing.test.ts`, `tests/unit/useQueue.cost.test.ts`, and `tests/unit/gateway-client.test.ts`
+- [x] T057 [US4] Add optional `gatewayRates` to `estimateItemCost` with the documented resolution order in `src/core/tts/pricing.ts`
+- [x] T058 [US4] Map `model/info` cost fields into `GatewayRate` in `src/core/tts/gateway-client.ts` and include `rates` from `server/api/tts/catalog.get.ts`
+- [x] T059 [US4] Pass catalog `rates` into `estimateItemCost` from `app/composables/useQueue.ts`
+- [x] T060 [US4] Run the US4-focused tests until green in `tests/unit/pricing.test.ts`, `tests/unit/useQueue.cost.test.ts`, and `tests/unit/gateway-client.test.ts`
 
 **Checkpoint**: Unknown models never look free; gateway-reported rates estimate when present; import/generation are not blocked by missing cost.
 
@@ -170,11 +170,11 @@ Shared core in `src/core/`; Nuxt adapters in `app/` and `server/`; tests in `tes
 
 **Purpose**: Localization, docs, regressions, and quickstart gates.
 
-- [ ] T061 [P] Extend English/Hungarian parity assertions for every new Settings, catalog, and test-code key in `tests/unit/i18n-parity.test.ts` and `tests/unit/i18n.generate-next.test.ts`
-- [ ] T062 [P] Document optional `NUXT_OPENAI_BASE_URL` and Settings Base URL in `README.md`
-- [ ] T063 Run `pnpm test`, `pnpm test:component`, `pnpm typecheck`, and `pnpm lint`, fixing only Feature 009 regressions under `src/core/`, `server/`, `app/components/settings/`, `app/components/generate/`, `app/composables/`, `app/pages/generate.vue`, `tests/`, and `i18n/locales/`
-- [ ] T064 Execute the SC-001 timed Settings→Test Connection→custom-model generate walkthrough (gateway already running) and record elapsed time in `specs/009-litellm-tts-gateway/quickstart.md`
-- [ ] T065 Execute remaining automated and optional live scenarios plus the no-live-network checks from `specs/009-litellm-tts-gateway/quickstart.md`, then record outcomes in `specs/009-litellm-tts-gateway/quickstart.md`
+- [x] T061 [P] Extend English/Hungarian parity assertions for every new Settings, catalog, and test-code key in `tests/unit/i18n-parity.test.ts` and `tests/unit/i18n.generate-next.test.ts`
+- [x] T062 [P] Document optional `NUXT_OPENAI_BASE_URL` and Settings Base URL in `README.md`
+- [x] T063 Run `pnpm test`, `pnpm test:component`, `pnpm typecheck`, and `pnpm lint`, fixing only Feature 009 regressions under `src/core/`, `server/`, `app/components/settings/`, `app/components/generate/`, `app/composables/`, `app/pages/generate.vue`, `tests/`, and `i18n/locales/`
+- [x] T064 Execute the SC-001 timed Settings→Test Connection→custom-model generate walkthrough (gateway already running) and record elapsed time in `specs/009-litellm-tts-gateway/quickstart.md`
+- [x] T065 Execute remaining automated and optional live scenarios plus the no-live-network checks from `specs/009-litellm-tts-gateway/quickstart.md`, then record outcomes in `specs/009-litellm-tts-gateway/quickstart.md`
 
 **Checkpoint**: Feature is ready for review; default suites still make no live network calls.
 

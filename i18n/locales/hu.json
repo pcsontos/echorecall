@@ -423,7 +423,15 @@
       "voice": "Hang",
       "model": "Modell",
       "format": "Formátum",
-      "reset": "{field} visszaállítása alapértékre"
+      "reset": "{field} visszaállítása alapértékre",
+      "retained": "{id} (jelenlegi)",
+      "catalogError": {
+        "UNREACHABLE": "A beszédátjáró extra hangjai és modelljei nem tölthetők be. A beépített lehetőségek továbbra is elérhetők.",
+        "UNAUTHORIZED": "A beszédátjáró elutasította az API-kulcsot, ezért az extra hangok és modellek nem tölthetők be. A beépített lehetőségek továbbra is elérhetők.",
+        "TIMEOUT": "A beszédátjáró nem válaszolt időben. A beépített hangok és modellek továbbra is elérhetők.",
+        "UNKNOWN": "A beszédátjáró extra hangjai és modelljei nem tölthetők be. A beépített lehetőségek továbbra is elérhetők.",
+        "NO_KEY": "Nincs beállítva API-kulcs, ezért az extra hangok és modellek nem tölthetők be. A beépített lehetőségek továbbra is elérhetők."
+      }
     },
     "actionBar": {
       "summary": "A sorban",

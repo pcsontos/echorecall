@@ -50,8 +50,8 @@ version: 1
 items:
   - text: Repeated text
   - text: "   "
-    voiceId: unknown-voice
-    model: unknown-model
+    voiceId: "bad id!"
+    model: "@@@"
     format: ogg
     surprise: true
     metadata:
@@ -145,7 +145,7 @@ items:
 describe('batch preview – blocking document/default errors (008 · US2)', () => {
   it.each([
     ['unknown default', 'defaults:\n  unexpected: true', 'unknownField', 'defaults.unexpected'],
-    ['invalid voice default', 'defaults:\n  voiceId: missing', 'invalidDefaults', 'defaults.voiceId'],
+    ['invalid voice default', 'defaults:\n  voiceId: "@@@"', 'invalidDefaults', 'defaults.voiceId'],
     ['null metadata defaults', 'defaults:\n  metadata: null', 'invalidDefaults', 'defaults.metadata'],
     ['unknown metadata default', 'defaults:\n  metadata:\n    typo: value', 'unknownField', 'defaults.metadata.typo'],
   ])('blocks %s with a stable scope and path', (_label, defaults, code, path) => {

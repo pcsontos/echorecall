@@ -51,8 +51,8 @@ describe('generation defaults — store-backed (007)', () => {
     expect(getGenerationDefaults({ config: reopened })).toEqual(saved)
   })
 
-  it('drops out-of-catalog values on PUT', () => {
-    const saved = setGenerationDefaults({ config }, { voiceId: 'nope', model: 'tts-1', format: 'zzz' })
+  it('drops illegal identifier and out-of-catalog format values on PUT', () => {
+    const saved = setGenerationDefaults({ config }, { voiceId: '@@@', model: 'tts-1', format: 'zzz' })
     expect(saved).toEqual({ model: 'tts-1' })
     expect(getGenerationDefaults({ config })).toEqual({ model: 'tts-1' })
   })

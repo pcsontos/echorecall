@@ -1,6 +1,7 @@
 import type { Format, Metadata, Model } from '../shared/types'
 import { MAX_INPUT_LENGTH } from '../tts/generate'
-import { isKnownFormat, isKnownModel, isKnownVoice } from '../tts/provider'
+import { isAcceptableModel, isAcceptableVoice } from '../tts/identifiers'
+import { isKnownFormat } from '../tts/provider'
 import type {
   BatchBaseInput,
   BatchDocumentError,
@@ -169,8 +170,8 @@ function validateResolvedSettings(
   issues: BatchIssue[],
 ): void {
   const required: [BatchIssue['code'], string, boolean][] = [
-    ['invalidVoice', `${path}.voiceId`, isKnownVoice(value.voiceId)],
-    ['invalidModel', `${path}.model`, isKnownModel(value.model)],
+    ['invalidVoice', `${path}.voiceId`, isAcceptableVoice(value.voiceId)],
+    ['invalidModel', `${path}.model`, isAcceptableModel(value.model)],
     ['invalidFormat', `${path}.format`, isKnownFormat(value.format)],
   ]
   for (const [code, fieldPath, valid] of required) {
@@ -188,12 +189,12 @@ function applyOverrides(
 
   if ('voiceId' in raw) {
     if (typeof raw.voiceId !== 'string') issues.push(issue('wrongType', `${path}.voiceId`))
-    else if (!isKnownVoice(raw.voiceId)) issues.push(issue('invalidVoice', `${path}.voiceId`))
+    else if (!isAcceptableVoice(raw.voiceId)) issues.push(issue('invalidVoice', `${path}.voiceId`))
     else value.voiceId = raw.voiceId
   }
   if ('model' in raw) {
     if (typeof raw.model !== 'string') issues.push(issue('wrongType', `${path}.model`))
-    else if (!isKnownModel(raw.model)) issues.push(issue('invalidModel', `${path}.model`))
+    else if (!isAcceptableModel(raw.model)) issues.push(issue('invalidModel', `${path}.model`))
     else value.model = raw.model as Model
   }
   if ('format' in raw) {

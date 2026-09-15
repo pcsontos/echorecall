@@ -1,25 +1,55 @@
 <script setup lang="ts">
-import { FORMATS, MODELS, type Format, type Model, type Voice } from '#core/client'
+import {
+  FORMATS,
+  MODELS,
+  type CatalogEntry,
+  type Format,
+  type Model,
+  type Voice,
+} from '#core/client'
 
-// 007 · US1/US3 (FR-005/FR-013): the Generation settings column — Voice / Model / Format
-// over the existing catalogs, controlled via v-model. Forks the 005 GenerateForm as a
-// vertical editor column (no external voice-preview link). Speed is intentionally not
-// exposed: synthesis always runs at 1× (the page pins it), so there is no control for it.
-// Each control has a per-field reset that asks the page to restore that field to its
-// configured default (resolution: last-selected → configured default → built-in fallback
-// is owned by the page, US3).
+// 007 · US1/US3 (FR-005/FR-013) / 009 · US2: Voice / Model / Format over the merged
+// catalog. Speed is not exposed (synthesis always runs at 1×). A current value
+// missing from the catalog is appended as a retained item — no write-in control.
 type GenSettingField = 'voiceId' | 'model' | 'format'
 
-defineProps<{ voices: Voice[] }>()
+const props = defineProps<{
+  voices: ReadonlyArray<CatalogEntry | Voice>
+  models?: ReadonlyArray<CatalogEntry>
+}>()
 const voiceId = defineModel<string>('voiceId', { required: true })
 const model = defineModel<Model>('model', { required: true })
 const format = defineModel<Format>('format', { required: true })
 const emit = defineEmits<{ reset: [field: GenSettingField] }>()
 const { t } = useI18n()
 
-// MODELS is readonly; USelectMenu wants a mutable items array. Formats show the
-// uppercased extension but bind the format id.
-const modelItems = [...MODELS]
+function asEntries(
+  items: ReadonlyArray<CatalogEntry | Voice> | undefined,
+  fallback: CatalogEntry[],
+): CatalogEntry[] {
+  if (!items || items.length === 0) return fallback
+  return items.map((item) => ({
+    id: item.id,
+    label: item.label,
+    source: 'source' in item ? item.source : 'builtin',
+  }))
+}
+
+function withRetained(items: CatalogEntry[], current: string): CatalogEntry[] {
+  if (!current || items.some((item) => item.id === current)) return items
+  return [
+    ...items,
+    { id: current, label: t('generateNext.settings.retained', { id: current }), source: 'retained' },
+  ]
+}
+
+const builtinModels: CatalogEntry[] = MODELS.map((id) => ({ id, label: id, source: 'builtin' }))
+const voiceItems = computed(() =>
+  withRetained(asEntries(props.voices, []), voiceId.value),
+)
+const modelItems = computed(() =>
+  withRetained(asEntries(props.models, builtinModels), model.value),
+)
 const formatItems = FORMATS.map((f) => ({ id: f.id, label: f.ext.toUpperCase() }))
 </script>
 
@@ -32,7 +62,8 @@ const formatItems = FORMATS.map((f) => ({ id: f.id, label: f.ext.toUpperCase() }
           data-test="voice"
           value-key="id"
           label-key="label"
-          :items="voices"
+          :items="voiceItems"
+          :create-item="false"
           class="w-full"
         />
       </UFormField>
@@ -48,7 +79,15 @@ const formatItems = FORMATS.map((f) => ({ id: f.id, label: f.ext.toUpperCase() }
 
     <div class="flex items-end gap-2">
       <UFormField :label="t('generateNext.settings.model')" class="flex-1">
-        <USelectMenu v-model="model" data-test="model" :items="modelItems" class="w-full" />
+        <USelectMenu
+          v-model="model"
+          data-test="model"
+          value-key="id"
+          label-key="label"
+          :items="modelItems"
+          :create-item="false"
+          class="w-full"
+        />
       </UFormField>
       <UButton
         data-test="gen-reset-model"

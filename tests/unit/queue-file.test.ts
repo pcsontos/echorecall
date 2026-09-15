@@ -98,7 +98,7 @@ describe('useQueueFile.importQueue – rejects malformed/incompatible files', ()
     const { importQueue } = useQueueFile()
     const cases = [
       { text: '   ', voiceId: 'alloy', model: 'tts-1', format: 'mp3', source: 'text' },
-      { text: 'ok', voiceId: 'alloy', model: 'not-a-model', format: 'mp3', source: 'text' },
+      { text: 'ok', voiceId: 'alloy', model: '@@@', format: 'mp3', source: 'text' },
       { text: 'ok', voiceId: 'alloy', model: 'tts-1', format: 'xyz', source: 'text' },
       { text: 'ok', voiceId: '', model: 'tts-1', format: 'mp3', source: 'text' },
     ]

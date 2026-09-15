@@ -79,10 +79,21 @@ describe('useViewPreferences — genSettings last-selected', () => {
     expect(genSettings.value).toEqual({ voiceId: 'sage' })
   })
 
-  it('drops obsolete string ids so they cannot override configured defaults', () => {
+  it('keeps valid custom identifiers and drops a closed-catalog format', () => {
     ;(g.localStorage as MemoryStorage).setItem(
       KEY,
       JSON.stringify({ voiceId: 'retired-voice', model: 'tts-9', format: 'ogg' }),
+    )
+
+    const { genSettings } = useViewPreferences()
+
+    expect(genSettings.value).toEqual({ voiceId: 'retired-voice', model: 'tts-9' })
+  })
+
+  it('drops illegal identifiers so they cannot override configured defaults', () => {
+    ;(g.localStorage as MemoryStorage).setItem(
+      KEY,
+      JSON.stringify({ voiceId: '@@@', model: 'bad id!', format: 'ogg' }),
     )
 
     const { genSettings } = useViewPreferences()

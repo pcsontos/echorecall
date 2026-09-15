@@ -8,11 +8,10 @@ import {
   ProviderUnavailableError,
 } from '../shared/errors'
 import type { Format, Model } from '../shared/types'
+import { isAcceptableModel, isAcceptableVoice } from './identifiers'
 import {
   INSTRUCTIONS_MODEL,
   isKnownFormat,
-  isKnownModel,
-  isKnownVoice,
   type TtsProvider,
 } from './provider'
 
@@ -48,10 +47,11 @@ export async function generateSpeech(
   const text = (input.text ?? '').trim()
   if (text.length === 0) throw new EmptyInputError()
   if (text.length > MAX_INPUT_LENGTH) throw new InputTooLongError(MAX_INPUT_LENGTH)
-  if (!isKnownVoice(input.voiceId)) throw new InvalidVoiceError(input.voiceId)
+  const voiceId = (input.voiceId ?? '').trim()
+  if (!isAcceptableVoice(voiceId)) throw new InvalidVoiceError(input.voiceId)
 
-  const model = (input.model ?? INSTRUCTIONS_MODEL) as Model
-  if (!isKnownModel(model)) throw new InvalidModelError(input.model ?? '')
+  const model = ((input.model ?? INSTRUCTIONS_MODEL).trim() || '') as Model
+  if (!isAcceptableModel(model)) throw new InvalidModelError(input.model ?? '')
 
   const format = (input.format ?? 'mp3') as Format
   if (!isKnownFormat(format)) throw new InvalidFormatError(input.format ?? '')
@@ -60,7 +60,8 @@ export async function generateSpeech(
   const instructions = model === INSTRUCTIONS_MODEL ? input.instructions : undefined
 
   try {
-    return await provider.synthesize({ text, voiceId: input.voiceId, model, format, speed, instructions })
+    // Single provider call — no EchoRecall retry/failover loop (gateway-owned).
+    return await provider.synthesize({ text, voiceId, model, format, speed, instructions })
   } catch (err) {
     if (err instanceof DomainError) throw err
     throw new ProviderUnavailableError(err instanceof Error ? err.message : undefined)
