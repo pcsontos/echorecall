@@ -84,6 +84,72 @@ describe('createSpeechGatewayClient', () => {
     ])
   })
 
+  it('attaches provider from model_info.litellm_provider', async () => {
+    const openai = openaiList(['elevenlabs/eleven_multilingual_v2'])
+    const fetchFn = vi.fn(async () =>
+      jsonResponse({
+        data: [
+          {
+            model_name: 'elevenlabs/eleven_multilingual_v2',
+            model_info: { mode: 'audio_speech', litellm_provider: 'elevenlabs' },
+          },
+        ],
+      }),
+    )
+    const client = createSpeechGatewayClient({
+      apiKey: 'sk-test',
+      baseURL: BASE_URL,
+      openai,
+      fetch: fetchFn,
+    })
+
+    expect(await client.listModels()).toEqual([
+      { id: 'elevenlabs/eleven_multilingual_v2', mode: 'audio_speech', provider: 'elevenlabs' },
+    ])
+  })
+
+  it('falls back to litellm_params.custom_llm_provider when litellm_provider is absent', async () => {
+    const openai = openaiList(['azure/speech'])
+    const fetchFn = vi.fn(async () =>
+      jsonResponse({
+        data: [
+          {
+            model_name: 'azure/speech',
+            litellm_params: { custom_llm_provider: 'azure' },
+            model_info: { mode: 'audio' },
+          },
+        ],
+      }),
+    )
+    const client = createSpeechGatewayClient({
+      apiKey: 'sk-test',
+      baseURL: BASE_URL,
+      openai,
+      fetch: fetchFn,
+    })
+
+    expect(await client.listModels()).toEqual([
+      { id: 'azure/speech', mode: 'audio', provider: 'azure' },
+    ])
+  })
+
+  it('omits provider when /model/info is 404 or the row has no provider field', async () => {
+    const openai = openaiList(['unlabeled'])
+    const fetchFn = vi.fn(async () =>
+      jsonResponse({
+        data: [{ model_name: 'unlabeled', model_info: { mode: 'audio_speech' } }],
+      }),
+    )
+    const client = createSpeechGatewayClient({
+      apiKey: 'sk-test',
+      baseURL: BASE_URL,
+      openai,
+      fetch: fetchFn,
+    })
+
+    expect(await client.listModels()).toEqual([{ id: 'unlabeled', mode: 'audio_speech' }])
+  })
+
   it('parses finite character and per-second rates and ignores non-finite fields', async () => {
     const openai = openaiList(['priced', 'broken'])
     const fetchFn = vi.fn(async () =>

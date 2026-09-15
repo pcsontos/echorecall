@@ -8,6 +8,7 @@ export interface SpeechGatewayModel {
   id: string
   label?: string
   mode?: string
+  provider?: string
 }
 
 export interface SpeechGatewayVoice {
@@ -43,6 +44,7 @@ export class GatewayDiscoveryError extends Error {
 interface ModelInfoRow {
   model_name?: unknown
   model_info?: unknown
+  litellm_params?: unknown
   voices?: unknown
 }
 
@@ -70,6 +72,18 @@ function parseInfoRows(payload: unknown): ModelInfoRow[] {
 function infoMode(row: ModelInfoRow): string | undefined {
   const info = asRecord(row.model_info)
   return typeof info?.mode === 'string' ? info.mode : undefined
+}
+
+function trimmedString(value: unknown): string | undefined {
+  return typeof value === 'string' && value.trim() ? value.trim() : undefined
+}
+
+function infoProvider(row: ModelInfoRow): string | undefined {
+  const info = asRecord(row.model_info)
+  const fromInfo = trimmedString(info?.litellm_provider)
+  if (fromInfo) return fromInfo
+  const params = asRecord(row.litellm_params)
+  return trimmedString(params?.custom_llm_provider)
 }
 
 function infoRates(row: ModelInfoRow): GatewayRate | undefined {
@@ -161,7 +175,12 @@ export function createSpeechGatewayClient(deps: SpeechGatewayClientDeps): Speech
         return listed.data.map((model) => {
           const row = byName.get(model.id)
           const mode = row ? infoMode(row) : undefined
-          return mode ? { id: model.id, mode } : { id: model.id }
+          const provider = row ? infoProvider(row) : undefined
+          return {
+            id: model.id,
+            ...(mode ? { mode } : {}),
+            ...(provider ? { provider } : {}),
+          }
         })
       } catch (err) {
         throw wrapDiscovery(err)

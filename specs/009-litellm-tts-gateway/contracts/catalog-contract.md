@@ -11,7 +11,7 @@ function mergeSpeechCatalog(input: {
   builtinVoices: readonly Voice[]
   builtinModels: readonly string[]
   gatewayVoices?: readonly { id: string; label?: string }[]
-  gatewayModels?: readonly { id: string; label?: string; mode?: string }[]
+  gatewayModels?: readonly { id: string; label?: string; mode?: string; provider?: string }[]
   retainedVoiceId?: string
   retainedModel?: string
   catalogError?: SpeechCatalog['catalogError']
@@ -26,7 +26,7 @@ Injectable port:
 
 ```ts
 interface SpeechGatewayClient {
-  listModels(): Promise<{ id: string; label?: string; mode?: string }[]>
+  listModels(): Promise<{ id: string; label?: string; mode?: string; provider?: string }[]>
   listVoices(): Promise<{ id: string; label?: string }[]>
   listRates(): Promise<Record<string, GatewayRate>>
 }
@@ -36,9 +36,10 @@ Default adapter:
 
 1. `OpenAI({ apiKey, baseURL, timeout: 10_000 }).models.list()`
 2. Optional `GET {baseURL}/model/info` with `Authorization: Bearer {apiKey}`
-3. Parse rates from `input_cost_per_character`, `output_cost_per_character`, `output_cost_per_second` when they are finite numbers
-4. Voices: empty array unless the info payload clearly lists them
-5. Any failure of (1) or (2) → caller returns built-in catalog + `catalogError`
+3. Parse `provider` from `model_info.litellm_provider`, else `litellm_params.custom_llm_provider` (omit when absent)
+4. Parse rates from `input_cost_per_character`, `output_cost_per_character`, `output_cost_per_second` when they are finite numbers
+5. Voices: empty array unless the info payload clearly lists them
+6. Any failure of (1) or (2) → caller returns built-in catalog + `catalogError`
 
 When no base URL is configured, skip the client and return built-in catalogs with empty `rates`.
 
@@ -57,8 +58,8 @@ Server-only: uses the resolved key + base URL. Never returns the key.
     { "id": "21m00Tcm4TlvDq8ikWAM", "label": "21m00Tcm4TlvDq8ikWAM", "source": "gateway" }
   ],
   "models": [
-    { "id": "gpt-4o-mini-tts", "label": "gpt-4o-mini-tts", "source": "builtin" },
-    { "id": "elevenlabs/eleven_multilingual_v2", "label": "elevenlabs/eleven_multilingual_v2", "source": "gateway" }
+    { "id": "gpt-4o-mini-tts", "label": "gpt-4o-mini-tts", "source": "builtin", "provider": "openai" },
+    { "id": "elevenlabs/eleven_multilingual_v2", "label": "elevenlabs/eleven_multilingual_v2", "source": "gateway", "provider": "elevenlabs" }
   ],
   "rates": {
     "elevenlabs/eleven_multilingual_v2": { "inputCostPerCharacter": 0.00003 }
@@ -75,6 +76,7 @@ Unchanged: `{ voices: VOICES }` (built-in only). Library filters keep this list.
 ## Generate UI
 
 - Voice and Model menus bind to `GET /api/tts/catalog`.
+- When the catalog has more than one model provider, a Provider select sits to the left of Model and filters Model items. Provider is derived from each model’s `provider` field (`openai` for built-ins; LiteLLM `model_info.litellm_provider` or `litellm_params.custom_llm_provider` for gateway models; omitted → `other`). Changing Provider selects that provider’s first model.
 - Built-in entries remain when the catalog is loading or `catalogError` is set.
 - A non-blocking status announces catalog load failure.
 - If the current form/queue `voiceId` or `model` is not in the list, the page appends a `source: "retained"` item so the control can show it.

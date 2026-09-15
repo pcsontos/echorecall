@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vitest'
-import { mergeSpeechCatalog } from '../../src/core/tts/catalog'
+import {
+  mergeSpeechCatalog,
+  firstModelIdForProvider,
+  listModelProviders,
+  modelsForProvider,
+} from '../../src/core/tts/catalog'
 
 // 009 · US2: Generate Voice/Model lists are the union of the built-in catalog and
 // the gateway catalog. Pure merge — no network. Builtin first, gateway-only
@@ -21,8 +26,8 @@ describe('mergeSpeechCatalog', () => {
       { id: 'nova', label: 'Nova', source: 'builtin' },
     ])
     expect(catalog.models).toEqual([
-      { id: 'tts-1', label: 'tts-1', source: 'builtin' },
-      { id: 'gpt-4o-mini-tts', label: 'gpt-4o-mini-tts', source: 'builtin' },
+      { id: 'tts-1', label: 'tts-1', source: 'builtin', provider: 'openai' },
+      { id: 'gpt-4o-mini-tts', label: 'gpt-4o-mini-tts', source: 'builtin', provider: 'openai' },
     ])
     expect(catalog.catalogError).toBeUndefined()
   })
@@ -158,5 +163,75 @@ describe('mergeSpeechCatalog', () => {
       'imported-model',
     ])
     expect(catalog.voices.find((entry) => entry.id === 'imported-voice')?.source).toBe('retained')
+  })
+
+  it('tags builtin models as openai and copies gateway provider', () => {
+    const catalog = mergeSpeechCatalog({
+      builtinVoices,
+      builtinModels,
+      gatewayModels: [
+        { id: 'elevenlabs/eleven_multilingual_v2', provider: 'elevenlabs' },
+        { id: 'mystery-tts' },
+      ],
+    })
+    expect(catalog.models).toEqual([
+      { id: 'tts-1', label: 'tts-1', source: 'builtin', provider: 'openai' },
+      { id: 'gpt-4o-mini-tts', label: 'gpt-4o-mini-tts', source: 'builtin', provider: 'openai' },
+      {
+        id: 'elevenlabs/eleven_multilingual_v2',
+        label: 'elevenlabs/eleven_multilingual_v2',
+        source: 'gateway',
+        provider: 'elevenlabs',
+      },
+      { id: 'mystery-tts', label: 'mystery-tts', source: 'gateway' },
+    ])
+  })
+
+  it('does not invent a provider for retained-only models', () => {
+    const catalog = mergeSpeechCatalog({
+      builtinVoices,
+      builtinModels,
+      retainedModel: 'imported-model',
+    })
+    expect(catalog.models.at(-1)).toEqual({
+      id: 'imported-model',
+      label: 'imported-model',
+      source: 'retained',
+    })
+  })
+})
+
+describe('listModelProviders / modelsForProvider', () => {
+  const models = [
+    { id: 'tts-1', label: 'tts-1', source: 'builtin' as const, provider: 'openai' },
+    { id: 'gpt-4o-mini-tts', label: 'gpt-4o-mini-tts', source: 'builtin' as const, provider: 'openai' },
+    {
+      id: 'elevenlabs/eleven_multilingual_v2',
+      label: 'elevenlabs/eleven_multilingual_v2',
+      source: 'gateway' as const,
+      provider: 'elevenlabs',
+    },
+    { id: 'mystery-tts', label: 'mystery-tts', source: 'gateway' as const },
+    { id: 'azure/speech', label: 'azure/speech', source: 'gateway' as const, provider: 'azure' },
+  ]
+
+  it('lists openai first, other providers in catalog order, other last', () => {
+    expect(listModelProviders(models)).toEqual(['openai', 'elevenlabs', 'azure', 'other'])
+  })
+
+  it('filters models by provider and treats missing provider as other', () => {
+    expect(modelsForProvider(models, 'openai').map((entry) => entry.id)).toEqual([
+      'tts-1',
+      'gpt-4o-mini-tts',
+    ])
+    expect(modelsForProvider(models, 'elevenlabs').map((entry) => entry.id)).toEqual([
+      'elevenlabs/eleven_multilingual_v2',
+    ])
+    expect(modelsForProvider(models, 'other').map((entry) => entry.id)).toEqual(['mystery-tts'])
+  })
+
+  it('returns the first model id for a provider', () => {
+    expect(firstModelIdForProvider(models, 'elevenlabs')).toBe('elevenlabs/eleven_multilingual_v2')
+    expect(firstModelIdForProvider(models, 'missing')).toBeUndefined()
   })
 })

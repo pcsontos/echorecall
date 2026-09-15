@@ -24,7 +24,15 @@ export type {
   GatewayRate,
   SpeechCatalog,
 } from './tts/catalog'
-export { mergeSpeechCatalog } from './tts/catalog'
+export {
+  BUILTIN_MODEL_PROVIDER,
+  OTHER_MODEL_PROVIDER,
+  firstModelIdForProvider,
+  listModelProviders,
+  mergeSpeechCatalog,
+  modelProviderOf,
+  modelsForProvider,
+} from './tts/catalog'
 export {
   MAX_IDENTIFIER_LENGTH,
   isAcceptableModel,

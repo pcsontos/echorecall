@@ -60,6 +60,8 @@ interface CatalogEntry {
   id: string
   label: string
   source: 'builtin' | 'gateway' | 'retained'
+  /** Models only. Built-in → `openai`. Gateway → `model_info.litellm_provider` or `litellm_params.custom_llm_provider`. Omitted → grouped as `other`. */
+  provider?: string
 }
 
 interface GatewayRate {
