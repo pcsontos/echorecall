@@ -6,19 +6,25 @@ import type { TtsProvider } from './provider'
 
 export interface OpenAiTtsConfig {
   apiKey: string
+  /** Optional OpenAI-compatible gateway. Omitted → public OpenAI default. */
+  baseURL?: string
 }
 
 /**
  * OpenAI TTS adapter — the only place the OpenAI network call lives. Constructed
- * per request from the resolved API key (UI → env precedence is applied by the
- * caller). The model/format/speed/instructions all come from the validated
- * request, so this adapter just maps them onto the SDK call.
+ * per request from the resolved API key and optional base URL (UI → env
+ * precedence is applied by the caller). The model/format/speed/instructions all
+ * come from the validated request, so this adapter just maps them onto the SDK.
  */
 export class OpenAiTtsProvider implements TtsProvider {
   private readonly client: OpenAI
 
   constructor(config: OpenAiTtsConfig) {
-    this.client = new OpenAI({ apiKey: config.apiKey })
+    this.client = new OpenAI(
+      config.baseURL
+        ? { apiKey: config.apiKey, baseURL: config.baseURL }
+        : { apiKey: config.apiKey },
+    )
   }
 
   async synthesize(input: {
@@ -31,8 +37,8 @@ export class OpenAiTtsProvider implements TtsProvider {
   }): Promise<Buffer> {
     const params: SpeechCreateParams = {
       model: input.model,
-      // voiceId is validated against our catalog (which mirrors OpenAI's voices)
-      // before this adapter is reached; cast to the SDK's narrower union.
+      // voice/model are acceptable identifiers (built-in or custom). The SDK
+      // voice union is narrower than gateway ids, so cast at the boundary.
       voice: input.voiceId as SpeechCreateParams['voice'],
       input: input.text,
       response_format: input.format,
@@ -46,6 +52,7 @@ export class OpenAiTtsProvider implements TtsProvider {
       params.speed = input.speed
     }
     const response = await this.client.audio.speech.create(params)
+    // One SDK call: bytes or throw. Gateway-internal failover is invisible here.
     return Buffer.from(await response.arrayBuffer())
   }
 }

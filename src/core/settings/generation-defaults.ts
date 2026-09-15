@@ -1,5 +1,6 @@
 import type { Format, Model } from '../shared/types'
-import { isKnownFormat, isKnownModel, isKnownVoice } from '../tts/provider'
+import { isAcceptableModel, isAcceptableVoice } from '../tts/identifiers'
+import { isKnownFormat } from '../tts/provider'
 import type { AppConfigRepository } from './app-config-repository'
 
 /** The single app_config row holding the JSON-serialized generation defaults (007 · US3). */
@@ -34,15 +35,16 @@ export interface GenerationDefaultsInput {
 
 /**
  * Sanitize an arbitrary input (a form body or a parsed stored row) into the supported,
- * catalog-valid {@link GenerationDefaults} subset: `voiceId`/`model`/`format` survive only
- * when they are known catalog values. Unknown/invalid fields are dropped. Applied on both
- * write and read, so a corrupt or hand-edited row can only ever yield a clean set.
+ * identifier-valid {@link GenerationDefaults} subset: `voiceId`/`model` survive when they
+ * are acceptable identifiers (built-in catalog or valid custom id); `format` stays
+ * catalog-closed. Invalid fields are dropped. Applied on both write and read, so a
+ * corrupt or hand-edited row can only ever yield a clean set.
  */
 function sanitize(input: unknown): GenerationDefaults {
   const src = (input ?? {}) as Record<string, unknown>
   const out: GenerationDefaults = {}
-  if (typeof src.voiceId === 'string' && isKnownVoice(src.voiceId)) out.voiceId = src.voiceId
-  if (typeof src.model === 'string' && isKnownModel(src.model)) out.model = src.model as Model
+  if (typeof src.voiceId === 'string' && isAcceptableVoice(src.voiceId)) out.voiceId = src.voiceId.trim()
+  if (typeof src.model === 'string' && isAcceptableModel(src.model)) out.model = src.model.trim() as Model
   if (typeof src.format === 'string' && isKnownFormat(src.format)) out.format = src.format as Format
   return out
 }

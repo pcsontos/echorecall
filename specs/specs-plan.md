@@ -14,7 +14,111 @@
 
 ---
 
-## Next implementation — Feature 008: Structured Generate batch import
+## Next implementation — Feature 009: LiteLLM Unified Gateway & Multi-Provider TTS
+
+> Self-contained brief for `/speckit-specify`. Connects EchoRecall's existing TTS generation
+> pipeline to a LiteLLM proxy (or any OpenAI-compatible audio gateway) to unlock multi-provider
+> speech generation (ElevenLabs, Azure Speech, Cartesia, Deepgram Aura), resilient batch failovers,
+> audio caching, and centralized spend governance without adding custom vendor SDKs. Full-duplex
+> realtime WebSockets and non-TTS audio intelligence (STT/transcription) remain out of scope.
+
+### Intent
+
+EchoRecall currently couples directly to OpenAI's public TTS API, with static voice and model catalogs
+(`tts-1`, `tts-1-hd`, `gpt-4o-mini-tts`) and hardcoded OpenAI pricing tables. Because EchoRecall's core
+TTS adapter (`OpenAiTtsProvider`) already uses the official `openai` SDK (`openai/resources/audio/speech`),
+it can communicate seamlessly with an external or self-hosted **LiteLLM proxy** simply by accepting an
+optional API Base URL (`baseURL`) alongside the API key.
+
+LiteLLM exposes a unified OpenAI-compliant `/v1/audio/speech` endpoint while routing requests to 100+
+downstream backends. Integrating LiteLLM as an optional gateway enables:
+1. **Multi-provider TTS without vendor SDK bloat**: Generate speech using ElevenLabs, Azure Speech,
+   Google Cloud TTS, or Cartesia through the existing OpenAI request schema.
+2. **Resilience for batch generation**: Automatic retries and provider failover (e.g., ElevenLabs →
+   Azure Speech or OpenAI) when hitting rate limits (429) or transient provider outages during large batch runs.
+3. **Audio caching (deduplication)**: LiteLLM's proxy-level caching (e.g., Redis) returns cached audio bytes
+   for identical text/voice requests across batches, preventing duplicate upstream API costs.
+4. **Spend governance**: Support for LiteLLM virtual keys with centralized budget limits, character quotas,
+   and unified spend auditing.
+
+### User journeys (priority hints for `/speckit-specify`)
+
+**P1 — Configure custom OpenAI / LiteLLM Base URL.**
+The user can specify an API Base URL (e.g., `http://localhost:4000/v1` or a private LiteLLM deployment)
+via environment variable (`NUXT_OPENAI_BASE_URL`) or directly in the in-app **Settings** modal alongside
+the existing in-app API key. When left empty, EchoRecall continues pointing to `https://api.openai.com/v1`.
+
+**P1 — Use external provider models and voices in the Generate workspace.**
+Users can enter or select third-party TTS models (e.g., `elevenlabs/eleven_multilingual_v2`,
+`azure/en-US-JennyNeural`, `cartesia/sonic`) and custom voice IDs. The core validation and queue editor
+accept valid provider model/voice identifiers rather than rejecting non-OpenAI catalog names.
+
+**P2 — Resilient batch generation through the gateway.**
+During batch generation (from YAML, JSON, or plain text import), requests dispatch through the configured
+gateway. When LiteLLM executes failover between providers, EchoRecall receives the audio bytes transparently,
+stamps metadata/tags, and writes the clip to the Library without job aborts.
+
+**P2 — Graceful cost estimation for third-party models.**
+When an imported batch or queue row uses a model not present in the static OpenAI pricing table
+(`MODEL_PRICING`), the UI and batch preview gracefully indicate cost as `'unavailable'` (or display
+gateway-reported rates) instead of throwing an error or displaying a misleading "$0.00".
+
+### Technical & Architecture boundaries
+
+- **Core TTS Port & Adapter (`src/core/tts/`)**:
+  - Update `OpenAiTtsConfig` to accept an optional `baseURL?: string`.
+  - Pass `baseURL` to the `new OpenAI({ apiKey, baseURL })` constructor in `OpenAiTtsProvider`.
+  - Loosen or extend voice/model catalog checks in `src/core/tts/provider.ts` to allow custom/prefixed
+    provider identifiers while preserving validation safety.
+  - Update `src/core/tts/pricing.ts` to safely handle non-OpenAI models (`CostEstimate = 'unavailable'`).
+- **Server DI Container & Configuration (`server/utils/container.ts`)**:
+  - Read `openaiBaseUrl` from runtime config (`NUXT_OPENAI_BASE_URL`) or decrypted from `SqliteAppConfigRepository`.
+  - Inject `baseURL` into `OpenAiTtsProvider` within `getTtsProvider()`.
+- **In-App Settings (`app/components/settings/`, `server/api/settings/`)**:
+  - Add an optional "API Base URL / LiteLLM Proxy URL" input field to the Settings modal.
+  - Persist the setting securely in the app configuration store alongside the API key.
+  - Provide an optional "Test Connection" button to verify reachability.
+
+### Functional boundaries
+
+- Standardize strictly on the OpenAI-compatible `/v1/audio/speech` HTTP REST contract (`input`, `voice`,
+  `model`, `response_format`, `speed`, `instructions`).
+- Audio formats (`mp3`, `wav`, `flac`, `opus`, `aac`, `pcm`) pass through to the provider and continue
+  into the existing `taglib-wasm` ID3/Vorbis metadata tagging pipeline.
+- All batch import mechanics (YAML/JSON schema, defaults inheritance, preview, queue append) remain
+  intact and work seamlessly with the new gateway.
+
+### Out of scope (do **not** spec here)
+
+- Embedded vendor SDKs (no direct `@elevenlabs/client`, Azure Speech SDK, etc. — all third-party TTS
+  must be routed via the OpenAI-compatible LiteLLM gateway).
+- Full-duplex real-time WebSockets, WebRTC, barge-in/interruption, or Voice Activity Detection (VAD).
+- Speech-to-Text (STT / transcription), audio intelligence, or audio-file imports.
+- Orchestrating or hosting the LiteLLM proxy instance itself inside EchoRecall (LiteLLM runs as an
+  independent external service or container).
+
+### Existing behavior to preserve
+
+- Default out-of-the-box experience with a standard `NUXT_OPENAI_API_KEY` hitting OpenAI directly must
+  continue to work with zero configuration changes.
+- Existing tests with mocked `TtsProvider` must continue passing without network access.
+- `gpt-4o-mini-tts` instructions (FR-013) and `speed` controls continue to map according to model support.
+- Generated audio storage (`data/audio/YYYY/MM/DD/`), SQLite persistence, and waveform player remain unchanged.
+
+### Open questions
+
+- **[NEEDS CLARIFICATION]** Should the Voice and Model selectors in the Generate workspace support dynamic
+  discovery (querying LiteLLM's `/v1/models` endpoint), or use a curated list with a freeform text write-in option?
+- **[NEEDS CLARIFICATION]** Does Settings require a "Test Connection" button to validate the Base URL and
+  API key before saving?
+- **[NEEDS CLARIFICATION]** Should users be able to configure a custom character/token price rate in Settings
+  for third-party models to enable cost estimation, or is displaying `'unavailable'` sufficient?
+
+---
+
+## Shipped — Feature 008: Structured Generate batch import
+
+*(branch `008-batch-import`; merged to `master` via **PR #99** on 2026-09-14; merge commit `535a6a3`; kept below as the historical planning brief)*
 
 > Self-contained brief for `/speckit-specify`. Replaces the current `.txt`-only upload with a
 > previewed import workflow for text and canonical YAML/JSON batch documents. Library file

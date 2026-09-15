@@ -92,21 +92,16 @@ describe('in-app OpenAI key — with NUXT_APP_SECRET configured', () => {
     })
     expect(ok).toEqual({ ok: true })
     expect(seen).toBe(PLAINTEXT) // the *active* key is the one verified
-
-    // A failing verification reports ok:false and carries no key details.
-    const bad = await testApiKey({ config, appSecret: APP_SECRET }, async () => {
-      throw new Error('401 Unauthorized')
-    })
-    expect(bad).toEqual({ ok: false })
+    expect(JSON.stringify(ok)).not.toContain(PLAINTEXT)
   })
 
-  it('reports ok:false for a test when no key is configured (verifier never called)', async () => {
+  it('reports ok:false with NO_KEY when no key is configured (verifier never called)', async () => {
     let called = false
     const res = await testApiKey({ config, appSecret: APP_SECRET }, async () => {
       called = true
       return true
     })
-    expect(res).toEqual({ ok: false })
+    expect(res).toEqual({ ok: false, code: 'NO_KEY' })
     expect(called).toBe(false)
   })
 })
@@ -136,6 +131,102 @@ describe('in-app OpenAI key — without NUXT_APP_SECRET (storage disabled)', () 
     // Simulate a key stored while a secret existed, then the secret removed.
     config.set(OPENAI_KEY_CONFIG_KEY, 'whatever-was-here')
     expect(resolveApiKey({ config, appSecret: undefined, envKey: 'sk-env' })).toBe('sk-env')
+  })
+})
+
+describe('Test Connection — draft URL+key, typed codes, no writes (009 · US1)', () => {
+  const GATEWAY = 'http://localhost:4000/v1'
+  const ENV_URL = 'https://gateway.example.com/v1'
+
+  it('uses optional draft { baseUrl, key } instead of the saved pair', async () => {
+    setUiKey({ config, appSecret: APP_SECRET }, PLAINTEXT)
+    config.set('openai_base_url', ENV_URL)
+
+    let seenKey: string | undefined
+    let seenBase: string | undefined
+    const ok = await testApiKey(
+      { config, appSecret: APP_SECRET, envKey: 'sk-env', envBaseUrl: ENV_URL },
+      async (key, baseURL) => {
+        seenKey = key
+        seenBase = baseURL
+        return true
+      },
+      { baseUrl: GATEWAY, key: 'sk-draft' },
+    )
+    expect(ok).toEqual({ ok: true })
+    expect(seenKey).toBe('sk-draft')
+    expect(seenBase).toBe(GATEWAY)
+  })
+
+  it('treats a present empty draft baseUrl as the public OpenAI default', async () => {
+    config.set('openai_base_url', ENV_URL)
+    let seenBase: string | undefined
+    const ok = await testApiKey(
+      { config, appSecret: APP_SECRET, envKey: PLAINTEXT, envBaseUrl: ENV_URL },
+      async (_key, baseURL) => {
+        seenBase = baseURL
+        return true
+      },
+      { baseUrl: '' },
+    )
+    expect(ok).toEqual({ ok: true })
+    expect(seenBase).toBeUndefined()
+  })
+
+  it('does not write config (or audio) when the test runs', async () => {
+    setUiKey({ config, appSecret: APP_SECRET }, PLAINTEXT)
+    const beforeKey = config.get(OPENAI_KEY_CONFIG_KEY)
+    expect(config.get('openai_base_url')).toBeUndefined()
+
+    await testApiKey(
+      { config, appSecret: APP_SECRET },
+      async () => true,
+      { baseUrl: GATEWAY, key: 'sk-draft' },
+    )
+
+    expect(config.get(OPENAI_KEY_CONFIG_KEY)).toBe(beforeKey)
+    expect(config.get('openai_base_url')).toBeUndefined()
+  })
+
+  it('maps verifier failures to UNREACHABLE / UNAUTHORIZED / TIMEOUT / UNKNOWN', async () => {
+    const deps = { config, appSecret: APP_SECRET, envKey: PLAINTEXT }
+
+    const unauthorized = new Error('Unauthorized')
+    ;(unauthorized as Error & { status: number }).status = 401
+    expect(await testApiKey(deps, async () => { throw unauthorized })).toEqual({
+      ok: false,
+      code: 'UNAUTHORIZED',
+    })
+
+    const refused = new Error('connect ECONNREFUSED')
+    ;(refused as NodeJS.ErrnoException).code = 'ECONNREFUSED'
+    expect(await testApiKey(deps, async () => { throw refused })).toEqual({
+      ok: false,
+      code: 'UNREACHABLE',
+    })
+
+    const timeout = new Error('Request timed out')
+    timeout.name = 'AbortError'
+    expect(await testApiKey(deps, async () => { throw timeout })).toEqual({
+      ok: false,
+      code: 'TIMEOUT',
+    })
+
+    expect(await testApiKey(deps, async () => { throw new Error('boom') })).toEqual({
+      ok: false,
+      code: 'UNKNOWN',
+    })
+  })
+
+  it('never echoes the key in a failure payload', async () => {
+    const res = await testApiKey(
+      { config, appSecret: APP_SECRET, envKey: PLAINTEXT },
+      async () => {
+        throw new Error(`bad key ${PLAINTEXT}`)
+      },
+    )
+    expect(res).toEqual({ ok: false, code: 'UNKNOWN' })
+    expect(JSON.stringify(res)).not.toContain(PLAINTEXT)
   })
 })
 

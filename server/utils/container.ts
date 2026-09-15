@@ -5,6 +5,7 @@ import {
   NoApiKeyError,
   OpenAiTtsProvider,
   resolveApiKey,
+  resolveBaseUrl,
   SqliteAppConfigRepository,
   SqliteGenerationRepository,
   TagLibAudioTagger,
@@ -43,6 +44,15 @@ export function resolveActiveApiKey(): string | undefined {
     config: getAppConfigRepository(),
     appSecret: (config.appSecret as string) || undefined,
     envKey: (config.openaiApiKey as string) || undefined,
+  })
+}
+
+/** Resolve the active speech destination: in-app → env → unset (SDK default). */
+export function resolveActiveBaseUrl(): string | undefined {
+  const config = useRuntimeConfig()
+  return resolveBaseUrl({
+    config: getAppConfigRepository(),
+    envBaseUrl: (config.openaiBaseUrl as string) || undefined,
   })
 }
 
@@ -88,5 +98,6 @@ export function getLibraryService(): Promise<LibraryService> {
 export function getTtsProvider(): TtsProvider {
   const apiKey = resolveActiveApiKey()
   if (!apiKey) throw new NoApiKeyError()
-  return new OpenAiTtsProvider({ apiKey })
+  const baseURL = resolveActiveBaseUrl()
+  return new OpenAiTtsProvider(baseURL ? { apiKey, baseURL } : { apiKey })
 }

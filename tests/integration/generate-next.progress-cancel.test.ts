@@ -73,6 +73,36 @@ describe('generation progress — full run (US4)', () => {
     }])
     expect(p.notGenerated).toEqual([])
   })
+
+  it('keeps prior successes and continues after a later per-item HTTP error (009 · US3)', async () => {
+    g.$fetch = vi.fn(async (url: string, opts: { body: { text?: string } }) => {
+      if (url !== '/api/generations') throw new Error(`unexpected fetch: ${url}`)
+      const text = opts.body.text ?? ''
+      if (text === 'failover') return { id: 'id-failover', audioUrl: '/api/generations/id-failover/audio' }
+      if (text === 'dead') throw { data: { error: { message: 'gateway 502' } } }
+      return { id: `id-${text}`, audioUrl: `/api/generations/id-${text}/audio` }
+    })
+
+    const q = useQueue()
+    q.addItem('failover')
+    const dead = q.addItem('dead')!
+    q.addItem('later')
+    const gen = useGeneration()
+
+    await gen.generateAll(q.generateTarget.value, q.speed.value, q.removeItem)
+
+    const p = gen.progress.value
+    expect(p.state).toBe('completed')
+    expect(p.succeeded).toEqual(['id-failover', 'id-later'])
+    expect(p.failed).toEqual([{
+      clientId: dead.clientId,
+      label: 'dead',
+      error: 'gateway 502',
+    }])
+    expect(p.notGenerated).toEqual([])
+    expect(q.items.value.map((item) => item.text)).toEqual(['dead'])
+    expect(gen.lastBatchIds.value).toEqual(['id-failover', 'id-later'])
+  })
 })
 
 describe('generation progress — confirm-then-stop (US4 / FR-016/FR-017)', () => {

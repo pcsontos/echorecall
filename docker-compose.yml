@@ -10,6 +10,8 @@ services:
       # Provide a key here OR set NUXT_APP_SECRET and add it in the Settings tab (US8) —
       # so the env key is optional rather than required at startup.
       NUXT_OPENAI_API_KEY: ${NUXT_OPENAI_API_KEY:-}
+      # Optional OpenAI-compatible speech gateway URL (009). Empty → public OpenAI.
+      NUXT_OPENAI_BASE_URL: ${NUXT_OPENAI_BASE_URL:-}
       # 32+ char secret enabling the encrypted in-app OpenAI key (US8); unset → env key only.
       NUXT_APP_SECRET: ${NUXT_APP_SECRET:-}
       # Default tag values are configured in the Settings tab (003), not via env vars.

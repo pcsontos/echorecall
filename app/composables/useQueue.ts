@@ -1,4 +1,12 @@
-import type { CostEstimate, Format, ListItem, Metadata, Model, ResolvedQueueInput } from '#core/client'
+import type {
+  CostEstimate,
+  Format,
+  GatewayRate,
+  ListItem,
+  Metadata,
+  Model,
+  ResolvedQueueInput,
+} from '#core/client'
 import { MAX_INPUT_LENGTH, estimateItemCost, formatInfo, parseUploadText } from '#core/client'
 import { toRaw } from 'vue'
 // Types only (imported by relative path per the repo typecheck gotcha): the saved-
@@ -101,6 +109,8 @@ export interface UseQueueOptions {
    * keys (e.g. deployment default tags for fields not in the metadata form) always pass through.
    */
   visibleMetadataFields?: () => readonly MetadataFieldId[]
+  /** Gateway-reported rates from GET /api/tts/catalog. Empty/omitted → unknown models unavailable. */
+  gatewayRates?: () => Readonly<Record<string, GatewayRate>>
 }
 
 /**
@@ -463,7 +473,7 @@ export function useQueue(options?: UseQueueOptions) {
     let totalUsd = 0
     let unavailableCount = 0
     for (const item of items.value) {
-      const estimate = estimateItemCost(item.model, item.text)
+      const estimate = estimateItemCost(item.model, item.text, options?.gatewayRates?.())
       perItem.set(item.clientId, estimate)
       if (estimate === 'unavailable') unavailableCount++
       else totalUsd += estimate.amountUsd

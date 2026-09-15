@@ -1,4 +1,5 @@
 import type { Model } from '../shared/types'
+import type { GatewayRate } from './catalog'
 
 // 007 · US5 (G-PRICING, FR-018/FR-019): pure, dependency-free per-item cost estimation.
 // Character-priced models (`tts-1`, `tts-1-hd`) have a published $/1M-characters rate.
@@ -41,21 +42,57 @@ export const MODEL_PRICING: Readonly<Record<Model, CharPricing | DurationPricing
 /** A per-item estimate: a dollar amount, or `'unavailable'` for an unpriced (unknown) model. */
 export type CostEstimate = { amountUsd: number } | 'unavailable'
 
+function finiteNonNegative(value: number | undefined): number | undefined {
+  return typeof value === 'number' && Number.isFinite(value) && value >= 0 ? value : undefined
+}
+
+function wordCount(text: string): number {
+  return text.trim().split(/\s+/).filter(Boolean).length
+}
+
 /**
- * Estimate one item's cost from its model and input `text`. Character-priced models charge
- * by text length; `gpt-4o-mini-tts` is estimated by spoken duration (word count ÷ WPM) plus
- * a small text-token cost. Empty text → `{ amountUsd: 0 }`. An unknown/unpriced model returns
- * `'unavailable'` — never a number, so an unpriced item is never mistaken for a free one.
+ * Estimate one item's cost from its model and input `text`. Built-in OpenAI table
+ * wins; otherwise a gateway character or per-second rate; otherwise `'unavailable'`
+ * — never `$0.00` for an unpriced non-empty unknown model.
  */
-export function estimateItemCost(model: Model, text: string): CostEstimate {
+export function estimateItemCost(
+  model: Model,
+  text: string,
+  gatewayRates?: Readonly<Record<string, GatewayRate>>,
+): CostEstimate {
   const pricing = MODEL_PRICING[model]
-  if (!pricing) return 'unavailable'
-  if ('usdPerMillionChars' in pricing) {
-    return { amountUsd: (text.length / 1_000_000) * pricing.usdPerMillionChars }
+  if (pricing) {
+    if ('usdPerMillionChars' in pricing) {
+      return { amountUsd: (text.length / 1_000_000) * pricing.usdPerMillionChars }
+    }
+    const words = wordCount(text)
+    const audioCost = (words / pricing.wordsPerMinute) * pricing.usdPerAudioMinute
+    const textTokens = Math.ceil(text.length / pricing.charsPerToken)
+    const textCost = (textTokens / 1_000_000) * pricing.usdPerMillionTextTokens
+    return { amountUsd: audioCost + textCost }
   }
-  const words = text.trim().split(/\s+/).filter(Boolean).length
-  const audioCost = (words / pricing.wordsPerMinute) * pricing.usdPerAudioMinute
-  const textTokens = Math.ceil(text.length / pricing.charsPerToken)
-  const textCost = (textTokens / 1_000_000) * pricing.usdPerMillionTextTokens
-  return { amountUsd: audioCost + textCost }
+
+  const rate = gatewayRates?.[model]
+  const perCharacter =
+    finiteNonNegative(rate?.inputCostPerCharacter) ?? finiteNonNegative(rate?.outputCostPerCharacter)
+  if (perCharacter !== undefined) {
+    return { amountUsd: text.length * perCharacter }
+  }
+  const perSecond = finiteNonNegative(rate?.outputCostPerSecond)
+  if (perSecond !== undefined) {
+    return { amountUsd: (wordCount(text) / 150) * 60 * perSecond }
+  }
+  return 'unavailable'
+}
+
+/**
+ * Gateway-reported input cost per character for a model id, when present and
+ * finite. Does not fall back to output or per-second rates (those stay in
+ * estimateItemCost). Used as the Generate Model-row rate label.
+ */
+export function inputCostPerCharacter(
+  model: string,
+  gatewayRates?: Readonly<Record<string, GatewayRate>>,
+): number | undefined {
+  return finiteNonNegative(gatewayRates?.[model]?.inputCostPerCharacter)
 }

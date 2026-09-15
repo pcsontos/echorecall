@@ -328,15 +328,33 @@
       "placeholder": "sk-…",
       "save": "Kulcs mentése",
       "clear": "Kulcs törlése",
-      "test": "Kulcs tesztelése",
-      "testOk": "Az aktív kulcs működik.",
+      "test": "Kapcsolat tesztelése",
+      "testOk": "A kapcsolat működik.",
       "testFail": "Az aktív kulcs nem működött.",
+      "baseUrlLabel": "API-alap URL",
+      "baseUrlPlaceholder": "http://localhost:4000/v1",
+      "baseUrlDescription": "Opcionális OpenAI-kompatibilis átjáró. Hagyd üresen a nyilvános OpenAI beszédszolgáltatáshoz.",
+      "baseUrlSave": "URL mentése",
+      "baseUrlClear": "URL törlése",
+      "baseUrlCurrent": "Jelenlegi URL:",
+      "baseUrlNone": "Nincs az alkalmazásban beállított URL — a környezeti URL-t használjuk, ha van, különben a nyilvános OpenAI-t.",
+      "testCodes": {
+        "NO_KEY": "Nincs API-kulcs beállítva. Adj meg egy kulcsot a Beállításokban vagy a környezetben.",
+        "UNREACHABLE": "A beszédszolgáltatás nem elérhető. Ellenőrizd az alap URL-t és hogy az átjáró fut-e.",
+        "UNAUTHORIZED": "Az API-kulcsot elutasították. Ellenőrizd a kulcsot és hogy ehhez az átjáróhoz érvényes-e.",
+        "TIMEOUT": "A beszédszolgáltatás nem válaszolt időben. Próbáld újra.",
+        "UNKNOWN": "A kapcsolatteszt nem sikerült. Próbáld újra, vagy nézd meg az átjáró naplóját."
+      },
       "disabledNotice": "Állítsd be a NUXT_APP_SECRET értékét a szerveren, hogy OpenAI-kulcsot tárolhass az alkalmazásban. A környezeti kulcsot (ha van) továbbra is használjuk.",
       "errors": {
         "load": "Nem sikerült betölteni a kulcs állapotát.",
         "save": "Nem sikerült menteni a kulcsot. Próbáld újra.",
         "disabled": "Az alkalmazáson belüli kulcstárolás ki van kapcsolva. Engedélyezéshez állítsd be a NUXT_APP_SECRET-et.",
-        "clear": "Nem sikerült törölni a kulcsot. Próbáld újra."
+        "clear": "Nem sikerült törölni a kulcsot. Próbáld újra.",
+        "invalidBaseUrl": "Adj meg egy abszolút http:// vagy https:// URL-t.",
+        "baseUrlSave": "Nem sikerült menteni az alap URL-t. Próbáld újra.",
+        "baseUrlLoad": "Nem sikerült betölteni az alap URL-t.",
+        "baseUrlClear": "Nem sikerült törölni az alap URL-t. Próbáld újra."
       }
     },
     "defaultTags": {
@@ -403,9 +421,20 @@
     },
     "settings": {
       "voice": "Hang",
+      "provider": "Szolgáltató",
+      "providerOther": "Egyéb",
       "model": "Modell",
+      "charRate": "{rate} / karakter",
       "format": "Formátum",
-      "reset": "{field} visszaállítása alapértékre"
+      "reset": "{field} visszaállítása alapértékre",
+      "retained": "{id} (jelenlegi)",
+      "catalogError": {
+        "UNREACHABLE": "A beszédátjáró extra hangjai és modelljei nem tölthetők be. A beépített lehetőségek továbbra is elérhetők.",
+        "UNAUTHORIZED": "A beszédátjáró elutasította az API-kulcsot, ezért az extra hangok és modellek nem tölthetők be. A beépített lehetőségek továbbra is elérhetők.",
+        "TIMEOUT": "A beszédátjáró nem válaszolt időben. A beépített hangok és modellek továbbra is elérhetők.",
+        "UNKNOWN": "A beszédátjáró extra hangjai és modelljei nem tölthetők be. A beépített lehetőségek továbbra is elérhetők.",
+        "NO_KEY": "Nincs beállítva API-kulcs, ezért az extra hangok és modellek nem tölthetők be. A beépített lehetőségek továbbra is elérhetők."
+      }
     },
     "actionBar": {
       "summary": "A sorban",

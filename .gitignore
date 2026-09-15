@@ -16,10 +16,16 @@ data/
 .env.*
 !.env.example
 
+# test / coverage artifacts
+coverage/
+
 # os / editor
 .DS_Store
 Thumbs.db
-.vscode/
+*.tmp
+*.swp
+.vscode/*
+!.vscode/launch.json
 .idea/
 .agents/*
 AGENTS.md

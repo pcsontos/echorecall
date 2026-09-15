@@ -17,9 +17,32 @@ export {
   formatInfo,
 } from './tts/provider'
 export type { TtsProvider } from './tts/provider'
+export type {
+  CatalogEntry,
+  ConnectionTestCode,
+  ConnectionTestResult,
+  GatewayRate,
+  SpeechCatalog,
+} from './tts/catalog'
+export {
+  BUILTIN_MODEL_PROVIDER,
+  OTHER_MODEL_PROVIDER,
+  firstModelIdForProvider,
+  listModelProviders,
+  mergeSpeechCatalog,
+  modelProviderOf,
+  modelsForProvider,
+} from './tts/catalog'
+export {
+  MAX_IDENTIFIER_LENGTH,
+  isAcceptableModel,
+  isAcceptableVoice,
+  isValidIdentifier,
+} from './tts/identifiers'
+export { parseBaseUrl } from './settings/base-url'
 export { MAX_INPUT_LENGTH, normalizeSpeed } from './tts/generate'
 // Per-item cost estimate (007 · US5): pure, browser-safe pricing for the Generate editor.
-export { MODEL_PRICING, estimateItemCost } from './tts/pricing'
+export { MODEL_PRICING, estimateItemCost, inputCostPerCharacter } from './tts/pricing'
 export type { CostEstimate } from './tts/pricing'
 
 // Naming rules (slug) — shared so the client preview matches the server result.

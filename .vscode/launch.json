@@ -1,0 +1,98 @@
+{
+  // EchoRecall (Nuxt 4) debug configs.
+  // https://nuxt.com/docs/4.x/guide/going-further/debugging
+  //
+  // F5 → "fullstack: nuxt". A Chrome a szerver készülte után nyílik, külön
+  // debug-profillal (a már futó Chrome-hoz a VS Code nem tud csatlakozni).
+  // Node: .mise.toml via `mise exec` (ne a PATH-on lévő node-ot használd).
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "chrome",
+      "request": "launch",
+      "name": "client: chrome",
+      "url": "http://localhost:3102",
+      "webRoot": "${workspaceFolder}/app",
+      "timeout": 60000,
+      "sourceMaps": true,
+      // Vue SFC-ket a Vite átírja; a tartalom-hash egyeztetés unbound
+      // breakpointot okozna.
+      "enableContentValidation": false,
+      // Vite mixed URLs: /_nuxt/<absolute fs path> and /_nuxt/components/...
+      "pathMapping": {
+        "/_nuxt${workspaceFolder}": "${workspaceFolder}",
+        "/_nuxt": "${workspaceFolder}/app",
+        "/@fs": "",
+        "/pages": "${workspaceFolder}/app/pages",
+        "/components": "${workspaceFolder}/app/components",
+        "/composables": "${workspaceFolder}/app/composables"
+      },
+      "sourceMapPathOverrides": {
+        "webpack:///./~/*": "${webRoot}/node_modules/*",
+        "webpack:////*": "/*",
+        "webpack://@?:*/?:*/*": "${webRoot}/*",
+        "webpack://?:*/*": "${webRoot}/*",
+        "webpack:///([a-z]):/(.+)": "$1:/$2",
+        "meteor://💻app/*": "${webRoot}/*",
+        "/pages/*": "${workspaceFolder}/app/pages/*",
+        "/components/*": "${workspaceFolder}/app/components/*",
+        "/composables/*": "${workspaceFolder}/app/composables/*",
+        "/layouts/*": "${workspaceFolder}/app/layouts/*",
+        "/plugins/*": "${workspaceFolder}/app/plugins/*"
+      },
+      "vueComponentPaths": [
+        "${workspaceFolder}/app/**/*.vue",
+        "!**/node_modules/**"
+      ]
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "server: nuxt",
+      "cwd": "${workspaceFolder}",
+      "runtimeExecutable": "mise",
+      "runtimeArgs": ["exec", "--", "node"],
+      "program": "${workspaceFolder}/node_modules/nuxt/bin/nuxt.mjs",
+      "args": ["dev", "--inspect"],
+      "console": "integratedTerminal",
+      "outputCapture": "std",
+      "autoAttachChildProcesses": true,
+      "enableContentValidation": false,
+      "envFile": "${workspaceFolder}/.env",
+      "env": {
+        "LAUNCH_EDITOR": "code-insiders",
+        "PATH": "/opt/homebrew/bin:${env:HOME}/.local/bin:${env:PATH}"
+      },
+      "skipFiles": ["<node_internals>/**"],
+      "cascadeTerminateToConfigurations": ["client: chrome"],
+      "serverReadyAction": {
+        "pattern": "Local:.+localhost:3102",
+        "uriFormat": "http://localhost:3102",
+        "action": "startDebugging",
+        "name": "client: chrome",
+        "killOnServerStop": true
+      }
+    },
+    {
+      "type": "node",
+      "request": "attach",
+      "name": "server: attach",
+      "port": 9229,
+      "restart": true,
+      "autoAttachChildProcesses": true,
+      "skipFiles": ["<node_internals>/**"]
+    }
+  ],
+  "compounds": [
+    {
+      "name": "fullstack: nuxt",
+      "configurations": ["server: nuxt"],
+      "stopAll": true,
+      "presentation": {
+        "order": 1,
+        "group": "0_app",
+        "hidden": false
+      }
+    }
+  ]
+}

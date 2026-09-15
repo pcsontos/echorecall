@@ -36,19 +36,34 @@ describe('getGenerationDefaults', () => {
     expect(getGenerationDefaults({ config })).toEqual({})
   })
 
-  it('re-sanitizes a stored row, dropping unknown voice/model/format and stray fields', () => {
+  it('re-sanitizes a stored row, dropping illegal voice/model/format and stray fields', () => {
     const config = fakeConfig({
       [GENERATION_DEFAULTS_CONFIG_KEY]: JSON.stringify({
-        voiceId: 'nope',
+        voiceId: '@@@',
         model: 'tts-1',
         format: 'zzz',
         speed: 99,
         bogus: 'x',
       }),
     })
-    // voiceId 'nope' and format 'zzz' are not in the catalogs → dropped; speed/bogus are not
-    // supported fields → dropped.
+    // voiceId '@@@' is not an acceptable identifier and format 'zzz' is not in the
+    // catalog → dropped; speed/bogus are not supported fields → dropped.
     expect(getGenerationDefaults({ config })).toEqual({ model: 'tts-1' })
+  })
+
+  it('keeps valid custom identifiers including prefixed gateway ids', () => {
+    const config = fakeConfig({
+      [GENERATION_DEFAULTS_CONFIG_KEY]: JSON.stringify({
+        voiceId: 'azure/en-US-JennyNeural',
+        model: 'elevenlabs/eleven_multilingual_v2',
+        format: 'mp3',
+      }),
+    })
+    expect(getGenerationDefaults({ config })).toEqual({
+      voiceId: 'azure/en-US-JennyNeural',
+      model: 'elevenlabs/eleven_multilingual_v2',
+      format: 'mp3',
+    })
   })
 })
 
@@ -64,17 +79,32 @@ describe('setGenerationDefaults', () => {
     expect(getGenerationDefaults({ config })).toEqual(saved)
   })
 
-  it('drops unknown values (out-of-catalog voice/model/format, unsupported speed)', () => {
+  it('drops illegal values (invalid identifiers, out-of-catalog format, unsupported speed)', () => {
     const config = fakeConfig()
     expect(
       setGenerationDefaults({ config }, {
-        voiceId: 'nope',
-        model: 'bad',
+        voiceId: 'bad id!',
+        model: '@@@',
         format: 'zzz',
         speed: 2,
       } as unknown as GenerationDefaultsInput),
     ).toEqual({})
     expect(config.get(GENERATION_DEFAULTS_CONFIG_KEY)).toBeUndefined()
+  })
+
+  it('persists valid custom identifiers as generation defaults', () => {
+    const config = fakeConfig()
+    const saved = setGenerationDefaults({ config }, {
+      voiceId: 'azure/en-US-JennyNeural',
+      model: 'elevenlabs/eleven_multilingual_v2',
+      format: 'flac',
+    })
+    expect(saved).toEqual({
+      voiceId: 'azure/en-US-JennyNeural',
+      model: 'elevenlabs/eleven_multilingual_v2',
+      format: 'flac',
+    })
+    expect(getGenerationDefaults({ config })).toEqual(saved)
   })
 
   it('persists a single valid field on its own (format only)', () => {

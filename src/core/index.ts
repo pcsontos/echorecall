@@ -2,6 +2,13 @@
 // import from here; browser-side adapters import the safe subset from './client'
 // (alias '#core/client') so server-only deps never reach the client bundle.
 export * from './client'
+export type {
+  CatalogEntry,
+  ConnectionTestCode,
+  ConnectionTestResult,
+  GatewayRate,
+  SpeechCatalog,
+} from './tts/catalog'
 
 // Domain orchestration: browser-safe at runtime, but needs a server-provided
 // TtsProvider, so it lives in the server entry only.
@@ -12,6 +19,8 @@ export { generateSpeech } from './tts/generate'
 export { newId } from './shared/ids'
 export { OpenAiTtsProvider } from './tts/openai-provider'
 export type { OpenAiTtsConfig } from './tts/openai-provider'
+export { createSpeechGatewayClient, GatewayDiscoveryError } from './tts/gateway-client'
+export type { SpeechGatewayClient, SpeechGatewayClientDeps } from './tts/gateway-client'
 
 export type {
   BulkCleanFilter,
@@ -50,10 +59,20 @@ export {
   setUiKey,
   clearUiKey,
   testApiKey,
+  mapConnectionError,
   maskKey,
   OPENAI_KEY_CONFIG_KEY,
 } from './settings/api-key'
-export type { KeyStatus, KeySource, KeyDeps } from './settings/api-key'
+export type { KeyStatus, KeySource, KeyDeps, ConnectionDrafts } from './settings/api-key'
+export {
+  parseBaseUrl,
+  resolveBaseUrl,
+  getBaseUrlStatus,
+  setUiBaseUrl,
+  clearUiBaseUrl,
+  OPENAI_BASE_URL_CONFIG_KEY,
+} from './settings/base-url'
+export type { BaseUrlStatus, BaseUrlSource, BaseUrlDeps } from './settings/base-url'
 // Default tag values (003): non-secret, store-backed pre-fills for the form,
 // editable from the Settings tab. Replaces the removed env reader (no NUXT_DEFAULT_TAG_*).
 export {

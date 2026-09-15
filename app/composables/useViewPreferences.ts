@@ -1,4 +1,4 @@
-import { isKnownFormat, isKnownModel, isKnownVoice } from '#core/client'
+import { isAcceptableModel, isAcceptableVoice, isKnownFormat } from '#core/client'
 
 // Per-device client view preferences (005 · US3 / FR-012, research §R5, data-model
 // §4). The queue table's visible-column set is persisted in localStorage so a user's
@@ -208,8 +208,8 @@ function sanitizeGenSettings(input: unknown): GenSettingsPref {
   if (!input || typeof input !== 'object') return {}
   const src = input as Record<string, unknown>
   const out: GenSettingsPref = {}
-  if (typeof src.voiceId === 'string' && isKnownVoice(src.voiceId)) out.voiceId = src.voiceId
-  if (typeof src.model === 'string' && isKnownModel(src.model)) out.model = src.model
+  if (typeof src.voiceId === 'string' && isAcceptableVoice(src.voiceId)) out.voiceId = src.voiceId.trim()
+  if (typeof src.model === 'string' && isAcceptableModel(src.model)) out.model = src.model.trim()
   if (typeof src.format === 'string' && isKnownFormat(src.format)) out.format = src.format
   return out
 }

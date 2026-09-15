@@ -57,10 +57,24 @@ describe('generateSpeech', () => {
     await expect(generateSpeech(okProvider, { text: exact, voiceId: 'alloy' })).resolves.toBeTruthy()
   })
 
-  it('rejects an unknown voice', async () => {
-    await expect(generateSpeech(okProvider, { text: 'hi', voiceId: 'bogus' })).rejects.toBeInstanceOf(
+  it('accepts a custom identifier voice and forwards it to the provider', async () => {
+    const { provider, calls } = recordingProvider()
+    await generateSpeech(provider, { text: 'hi', voiceId: 'bogus' })
+    expect(calls[0]).toMatchObject({ voiceId: 'bogus' })
+  })
+
+  it('rejects an empty, illegal, or overlong voice WITHOUT calling the provider', async () => {
+    const { provider, calls } = recordingProvider()
+    await expect(generateSpeech(provider, { text: 'hi', voiceId: '' })).rejects.toBeInstanceOf(
       InvalidVoiceError,
     )
+    await expect(generateSpeech(provider, { text: 'hi', voiceId: '@@@' })).rejects.toBeInstanceOf(
+      InvalidVoiceError,
+    )
+    await expect(
+      generateSpeech(provider, { text: 'hi', voiceId: 'a'.repeat(129) }),
+    ).rejects.toBeInstanceOf(InvalidVoiceError)
+    expect(calls).toHaveLength(0)
   })
 
   it('maps provider failures to ProviderUnavailableError', async () => {
@@ -74,10 +88,32 @@ describe('generateSpeech', () => {
     ).rejects.toBeInstanceOf(ProviderUnavailableError)
   })
 
-  it('rejects an unknown model WITHOUT calling the provider', async () => {
+  it('accepts a custom identifier model and forwards it to the provider', async () => {
+    const { provider, calls } = recordingProvider()
+    await generateSpeech(provider, { text: 'hi', voiceId: 'alloy', model: 'gpt-9000' })
+    expect(calls[0]).toMatchObject({ model: 'gpt-9000' })
+  })
+
+  it('accepts prefixed gateway voice and model identifiers', async () => {
+    const { provider, calls } = recordingProvider()
+    await generateSpeech(provider, {
+      text: 'hi',
+      voiceId: 'azure/en-US-JennyNeural',
+      model: 'elevenlabs/eleven_multilingual_v2',
+    })
+    expect(calls[0]).toMatchObject({
+      voiceId: 'azure/en-US-JennyNeural',
+      model: 'elevenlabs/eleven_multilingual_v2',
+    })
+  })
+
+  it('rejects an empty or overlong model WITHOUT calling the provider', async () => {
     const { provider, calls } = recordingProvider()
     await expect(
-      generateSpeech(provider, { text: 'hi', voiceId: 'alloy', model: 'gpt-9000' }),
+      generateSpeech(provider, { text: 'hi', voiceId: 'alloy', model: '' }),
+    ).rejects.toBeInstanceOf(InvalidModelError)
+    await expect(
+      generateSpeech(provider, { text: 'hi', voiceId: 'alloy', model: 'a'.repeat(129) }),
     ).rejects.toBeInstanceOf(InvalidModelError)
     expect(calls).toHaveLength(0)
   })

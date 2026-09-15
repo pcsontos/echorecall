@@ -48,6 +48,7 @@ Environment variables (server-only; never commit real keys):
 | Variable                     | Required | Default  | Purpose                                                                 |
 | ---------------------------- | -------- | -------- | ----------------------------------------------------------------------- |
 | `NUXT_OPENAI_API_KEY`        | no\*     | —        | OpenAI key for TTS. \*Required unless you set one in Settings.           |
+| `NUXT_OPENAI_BASE_URL`       | no       | —        | Optional OpenAI-compatible speech gateway (for example LiteLLM `http://localhost:4000/v1`). Empty uses the public OpenAI speech API. Can also be set in Settings → API Base URL (in-app value wins over this env). |
 | `NUXT_DATA_DIR`              | no       | `./data` | Where the SQLite DB + audio are kept.                                   |
 | `NUXT_APP_SECRET`            | no       | —        | 32+ char secret enabling the encrypted in-app OpenAI key; unset → env key only. |
 
@@ -87,8 +88,8 @@ header displays — so the shown version updates with no further edit.
 docker compose up --build -d
 ```
 
-`docker-compose.yml` passes the OpenAI key and `NUXT_APP_SECRET` through from `.env`
-(both optional), and bind-mounts `./data` so the SQLite
+`docker-compose.yml` passes the OpenAI key, optional `NUXT_OPENAI_BASE_URL`, and
+`NUXT_APP_SECRET` through from `.env` (all optional), and bind-mounts `./data` so the SQLite
 database and generated audio persist across container recreation. No extra system packages
 are needed — `better-sqlite3` is built in the image and the tagger ships as WASM via npm.
 Stop with `docker compose down`.

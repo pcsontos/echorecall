@@ -39,6 +39,8 @@ const NEW_NAMESPACES = [
   'library.tags',
   'library.waveform',
   'settings.modal',
+  'generateNext.settings.catalogError',
+  'settings.openaiKey.testCodes',
 ] as const
 
 const enTree = en as unknown as Tree

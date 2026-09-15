@@ -11,6 +11,7 @@ import type { BatchBaseInput, Format, Metadata, Model } from '#core/client'
 // (only visible fields are saved onto rows — Configure Visible Fields, 007).
 const { genSettings, setGenSetting, resetGenSetting, metadataFields, setMetadataFields } =
   useViewPreferences()
+const { catalog, loadCatalog } = useSpeechCatalog()
 const {
   items,
   voiceId,
@@ -37,9 +38,9 @@ const {
   setDefaults,
 } = useQueue({
   visibleMetadataFields: () => metadataFields.value.filter((f) => f.visible).map((f) => f.id),
+  gatewayRates: () => catalog.value.rates,
 })
-const { voices, generating, progress, loadVoices, generateAll, requestCancel, reset } =
-  useGeneration()
+const { generating, progress, generateAll, requestCancel, reset } = useGeneration()
 const { exportQueue, importQueue } = useQueueFile()
 const {
   state: batchImportState,
@@ -102,7 +103,7 @@ const configuredDefaults = ref<ConfiguredDefaults>({})
 const settingsReady = ref(false)
 const settingsChangedDuringLoad = new Set<GenSettingField>()
 
-const fallbackVoice = () => voices.value[0]?.id ?? ''
+const fallbackVoice = () => catalog.value.voices[0]?.id ?? ''
 
 function resolveSettings() {
   const ls = genSettings.value
@@ -154,12 +155,12 @@ const confirmReplace = ref(false)
 const importError = ref<string | null>(null)
 
 onMounted(async () => {
-  // Voices, default tags, and generation defaults are best-effort: a degraded/offline env
+  // Catalog, default tags, and generation defaults are best-effort: a degraded/offline env
   // just falls back to built-ins rather than blanking the whole page.
   try {
-    await loadVoices()
+    await loadCatalog()
   } catch {
-    // voices optional
+    // catalog optional — useSpeechCatalog already keeps builtin + catalogError
   }
   try {
     const { defaultTags } = await $fetch<{ defaultTags: Metadata }>('/api/settings/defaults')
@@ -314,11 +315,21 @@ function onCancelBatchImport() {
         <ScriptEntryPanel @add="onAdd" />
       </div>
       <div data-test="gen-col-settings" class="flex flex-col gap-2">
+        <p
+          v-if="catalog.catalogError"
+          data-test="catalog-error"
+          role="status"
+          class="text-sm text-muted"
+        >
+          {{ t(`generateNext.settings.catalogError.${catalog.catalogError}`) }}
+        </p>
         <GenerationSettingsPanel
           :voice-id="voiceId"
           :model="model"
           :format="format"
-          :voices="voices"
+          :voices="catalog.voices"
+          :models="catalog.models"
+          :rates="catalog.rates"
           @update:voice-id="onVoiceChanged"
           @update:model="onModelChanged"
           @update:format="onFormatChanged"

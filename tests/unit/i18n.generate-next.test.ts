@@ -100,6 +100,28 @@ const BATCH_IMPORT_PATHS = [
   'generateNext.batchImport.issue.invalidMetadata',
 ] as const
 
+/** Every user-visible leaf added by Feature 009 (gateway catalog + Settings URL). */
+const GATEWAY_PATHS = [
+  'generateNext.settings.retained',
+  'generateNext.settings.catalogError.UNREACHABLE',
+  'generateNext.settings.catalogError.UNAUTHORIZED',
+  'generateNext.settings.catalogError.TIMEOUT',
+  'generateNext.settings.catalogError.UNKNOWN',
+  'generateNext.settings.catalogError.NO_KEY',
+  'settings.openaiKey.baseUrlLabel',
+  'settings.openaiKey.baseUrlPlaceholder',
+  'settings.openaiKey.baseUrlDescription',
+  'settings.openaiKey.baseUrlSave',
+  'settings.openaiKey.baseUrlClear',
+  'settings.openaiKey.baseUrlCurrent',
+  'settings.openaiKey.baseUrlNone',
+  'settings.openaiKey.testCodes.NO_KEY',
+  'settings.openaiKey.testCodes.UNREACHABLE',
+  'settings.openaiKey.testCodes.UNAUTHORIZED',
+  'settings.openaiKey.testCodes.TIMEOUT',
+  'settings.openaiKey.testCodes.UNKNOWN',
+] as const
+
 function subtree(tree: Tree, path: string): Tree {
   return path.split('.').reduce<Tree>((node, key) => node[key] as Tree, tree)
 }
@@ -132,6 +154,19 @@ describe('i18n parity — Generate redesign (007)', () => {
           expect((huVal as string).length, `hu empty: ${path}`).toBeGreaterThan(0)
         }
       }
+    }
+  })
+})
+
+describe('i18n parity — LiteLLM gateway (009)', () => {
+  it('has every Feature 009 Settings, catalog, and test-code leaf in both locales', () => {
+    for (const path of GATEWAY_PATHS) {
+      const enValue = subtreeValue(enTree, path)
+      const huValue = subtreeValue(huTree, path)
+      expect(typeof enValue, `en missing: ${path}`).toBe('string')
+      expect(typeof huValue, `hu missing: ${path}`).toBe('string')
+      expect((enValue as string).trim().length, `en empty: ${path}`).toBeGreaterThan(0)
+      expect((huValue as string).trim().length, `hu empty: ${path}`).toBeGreaterThan(0)
     }
   })
 })

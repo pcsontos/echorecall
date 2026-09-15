@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { estimateItemCost, MODEL_PRICING } from '../../src/core/tts/pricing'
+import { estimateItemCost, inputCostPerCharacter, MODEL_PRICING } from '../../src/core/tts/pricing'
 
 // 007 · US5 (T036 / G-PRICING, FR-018/FR-019): pure per-item cost estimate. Character-
 // priced models (`tts-1`, `tts-1-hd`) cost by input length. The token-priced
@@ -53,5 +53,93 @@ describe('estimateItemCost', () => {
     expect(estimateItemCost('tts-1', '')).toEqual({ amountUsd: 0 })
     expect(estimateItemCost('tts-1-hd', '')).toEqual({ amountUsd: 0 })
     expect(estimateItemCost('gpt-4o-mini-tts', '')).toEqual({ amountUsd: 0 })
+  })
+
+  it('uses the built-in OpenAI table even when a gateway rate exists for the same id', () => {
+    expect(
+      estimateItemCost('tts-1', 'x'.repeat(1_000_000), {
+        'tts-1': { inputCostPerCharacter: 9 },
+      }),
+    ).toEqual({ amountUsd: 15 })
+  })
+
+  it('uses a gateway character rate for a non-catalog model', () => {
+    expect(
+      estimateItemCost('elevenlabs/eleven_multilingual_v2', 'abcd', {
+        'elevenlabs/eleven_multilingual_v2': { inputCostPerCharacter: 0.00003 },
+      }),
+    ).toEqual({ amountUsd: 4 * 0.00003 })
+  })
+
+  it('prefers inputCostPerCharacter, then outputCostPerCharacter', () => {
+    expect(
+      estimateItemCost('custom', 'ab', {
+        custom: { inputCostPerCharacter: 0.1, outputCostPerCharacter: 0.9 },
+      }),
+    ).toEqual({ amountUsd: 0.2 })
+    expect(
+      estimateItemCost('custom', 'ab', {
+        custom: { outputCostPerCharacter: 0.5 },
+      }),
+    ).toEqual({ amountUsd: 1 })
+  })
+
+  it('uses outputCostPerSecond at 150 WPM when no character rate is present', () => {
+    const text = Array(150).fill('word').join(' ')
+    expect(
+      estimateItemCost('custom', text, {
+        custom: { outputCostPerSecond: 0.001 },
+      }),
+    ).toEqual({ amountUsd: (150 / 150) * 60 * 0.001 })
+  })
+
+  it('ignores non-finite and negative gateway fields', () => {
+    expect(
+      estimateItemCost('custom', 'hello', {
+        custom: {
+          inputCostPerCharacter: Number.NaN,
+          outputCostPerCharacter: Number.POSITIVE_INFINITY,
+          outputCostPerSecond: -1,
+        },
+      }),
+    ).toBe('unavailable')
+  })
+
+  it('returns unavailable for an unpriced unknown model — never $0.00', () => {
+    expect(estimateItemCost('custom-model', 'hello')).toBe('unavailable')
+    expect(estimateItemCost('custom-model', 'hello', {})).toBe('unavailable')
+  })
+
+  it('empty text is $0 on a priced gateway model and unavailable when unpriced', () => {
+    expect(
+      estimateItemCost('custom', '', { custom: { inputCostPerCharacter: 0.1 } }),
+    ).toEqual({ amountUsd: 0 })
+    expect(estimateItemCost('custom', '')).toBe('unavailable')
+  })
+})
+
+describe('inputCostPerCharacter', () => {
+  it('returns a finite non-negative inputCostPerCharacter for the model', () => {
+    expect(
+      inputCostPerCharacter('elevenlabs/eleven_multilingual_v2', {
+        'elevenlabs/eleven_multilingual_v2': { inputCostPerCharacter: 0.00003 },
+      }),
+    ).toBe(0.00003)
+    expect(inputCostPerCharacter('elevenlabs/eleven_multilingual_v2', { 'elevenlabs/eleven_multilingual_v2': { inputCostPerCharacter: 0 } })).toBe(0)
+  })
+
+  it('does not fall back to outputCostPerCharacter or per-second rates', () => {
+    expect(
+      inputCostPerCharacter('custom', {
+        custom: { outputCostPerCharacter: 0.9, outputCostPerSecond: 0.001 },
+      }),
+    ).toBeUndefined()
+  })
+
+  it('returns undefined when the field is missing, non-finite, or negative', () => {
+    expect(inputCostPerCharacter('custom')).toBeUndefined()
+    expect(inputCostPerCharacter('custom', {})).toBeUndefined()
+    expect(inputCostPerCharacter('custom', { custom: { inputCostPerCharacter: Number.NaN } })).toBeUndefined()
+    expect(inputCostPerCharacter('custom', { custom: { inputCostPerCharacter: -0.1 } })).toBeUndefined()
   })
 })

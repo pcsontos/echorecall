@@ -6,6 +6,7 @@ export type ErrorCode =
   | 'INVALID_MODEL'
   | 'INVALID_FORMAT'
   | 'INVALID_FILENAME'
+  | 'INVALID_BASE_URL'
   | 'UPLOAD_TOO_LARGE'
   | 'NO_API_KEY'
   | 'KEY_STORAGE_DISABLED'
@@ -57,6 +58,12 @@ export class InvalidFormatError extends DomainError {
 export class InvalidFilenameError extends DomainError {
   constructor(message = 'Filename is empty or cannot be turned into a valid name.') {
     super('INVALID_FILENAME', message)
+  }
+}
+
+export class InvalidBaseUrlError extends DomainError {
+  constructor(message = 'Enter an absolute http:// or https:// URL.') {
+    super('INVALID_BASE_URL', message)
   }
 }
 
