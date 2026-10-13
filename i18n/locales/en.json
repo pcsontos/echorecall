@@ -440,6 +440,7 @@
       "summary": "In queue",
       "startTrack": "First track #",
       "saveQueue": "Save queue",
+      "queueSaved": "Queue saved ({count} items)",
       "loadQueue": "Load queue",
       "importBatch": "Import batch",
       "downloadBatchExample": "Download YAML example",

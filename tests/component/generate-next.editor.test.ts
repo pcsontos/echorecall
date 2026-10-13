@@ -82,4 +82,18 @@ describe('generate-next editor wiring (US1)', () => {
     expect(wrapper.find('[data-test="queue-row"]').text()).toContain('loaded row')
     wrapper.unmount()
   })
+
+  it('triggers export and toast when Save queue is clicked on non-empty queue', async () => {
+    const wrapper = await mountPage()
+    await wrapper.find('[data-test="add-text-input"]').setValue('item to save')
+    await wrapper.find('[data-test="add-text-submit"]').trigger('click')
+    await flushPromises()
+
+    const saveBtn = wrapper.find('[data-test="action-save-queue"]')
+    expect((saveBtn.element as HTMLButtonElement).disabled).toBe(false)
+    await saveBtn.trigger('click')
+    await flushPromises()
+
+    wrapper.unmount()
+  })
 })

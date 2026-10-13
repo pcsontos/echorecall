@@ -81,15 +81,24 @@ export function useQueueFile() {
    * anchor click); never called server-side.
    */
   function exportQueue(doc: QueueFileDocument, suggestedName = 'echorecall-queue'): void {
-    const blob = new Blob([JSON.stringify(doc, null, 2)], { type: 'application/json' })
-    const url = URL.createObjectURL(blob)
+    const filename = `${suggestedName}.echoqueue.json`
+    const jsonText = JSON.stringify(doc, null, 2)
+
+    // Data URI provides the most bulletproof client-side download across Firefox and other engines
+    // without suffering from premature revokeObjectURL race conditions (which cause Firefox to
+    // abort the download into a temporary random `.json.part` file).
+    const encoded = encodeURIComponent(jsonText)
+    const dataUrl = `data:application/json;charset=utf-8,${encoded}`
+
     const link = document.createElement('a')
-    link.href = url
-    link.download = `${suggestedName}.echoqueue.json`
+    link.href = dataUrl
+    link.download = filename
+    link.style.display = 'none'
     document.body.appendChild(link)
     link.click()
-    link.remove()
-    URL.revokeObjectURL(url)
+    setTimeout(() => {
+      link.remove()
+    }, 100)
   }
 
   /**

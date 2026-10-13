@@ -75,6 +75,7 @@ const totalLabel = computed(() =>
         color="neutral"
         variant="outline"
         icon="i-lucide-save"
+        :disabled="queueCount === 0"
         @click="emit('save-queue')"
       >
         {{ t('generateNext.actionBar.saveQueue') }}

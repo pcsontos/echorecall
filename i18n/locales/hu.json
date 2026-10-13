@@ -440,6 +440,7 @@
       "summary": "A sorban",
       "startTrack": "Első sorszám",
       "saveQueue": "Sor mentése",
+      "queueSaved": "Sor elmentve ({count} tétel)",
       "loadQueue": "Sor betöltése",
       "importBatch": "Köteg importálása",
       "downloadBatchExample": "YAML-példa letöltése",

@@ -42,6 +42,7 @@ const {
 })
 const { generating, progress, generateAll, requestCancel, reset } = useGeneration()
 const { exportQueue, importQueue } = useQueueFile()
+const toast = useToast()
 const {
   state: batchImportState,
   preview: batchPreview,
@@ -226,7 +227,13 @@ function onProgressDone() {
 }
 
 function onSaveQueue() {
+  if (items.value.length === 0) return
   exportQueue(serialize())
+  toast.add({
+    title: t('generateNext.actionBar.queueSaved', { count: items.value.length }),
+    color: 'success',
+    icon: 'i-lucide-check',
+  })
 }
 
 function onLoadQueue() {

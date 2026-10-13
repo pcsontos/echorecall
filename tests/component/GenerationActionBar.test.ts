@@ -34,10 +34,13 @@ describe('GenerationActionBar', () => {
     expect(wrapper.find('[data-test="action-import-batch"]').text()).toContain('Import batch')
   })
 
-  it('disables Generate when the queue is empty', async () => {
+  it('disables Generate and Save queue when the queue is empty', async () => {
     const wrapper = await mountSuspended(GenerationActionBar, { props: { queueCount: 0 } })
     expect(
       (wrapper.find('[data-test="action-generate"]').element as HTMLButtonElement).disabled,
+    ).toBe(true)
+    expect(
+      (wrapper.find('[data-test="action-save-queue"]').element as HTMLButtonElement).disabled,
     ).toBe(true)
   })
 

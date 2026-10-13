@@ -215,8 +215,12 @@ export function useGeneration() {
     link.download = 'echorecall-batch.zip'
     document.body.appendChild(link)
     link.click()
-    link.remove()
-    URL.revokeObjectURL(url)
+    // Firefox handles synthetic clicks asynchronously; revoking the object URL
+    // synchronously on the next line aborts the download before it starts.
+    setTimeout(() => {
+      link.remove()
+      URL.revokeObjectURL(url)
+    }, 1000)
   }
 
   return {
