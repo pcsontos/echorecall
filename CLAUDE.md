@@ -17,3 +17,9 @@ The five canonical triage roles use their default label strings. See `docs/agent
 ### Domain docs
 
 Single-context: one `GLOSSARY.md` plus `docs/adr/` at the repo root. See `docs/agents/domain.md`.
+
+### Agent memory
+
+Durable working rules and private references live in the private issue-tracker clone; where the clone is missing, the import is skipped.
+
+@~/github/pcsontos/issue-tracker/echorecall/agent-memory.md
